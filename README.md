@@ -17,7 +17,7 @@ Also feel free to make a PR.
 - Blips between members
 - Nametags above head (/crewTags to hide)
 
-## Requirements
+## Dependencies
 - [oxmysql](https://github.com/overextended/oxmysql)
 - [ox_lib](https://github.com/overextended/ox_lib)
 
