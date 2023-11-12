@@ -28,7 +28,7 @@ Also feel free to make a PR.
 - getCrew - returns table with crew data
 - ownsCrew - returns true if player owns a crew
 - isInCrew - returns true if player is in crew
-- 
+
 ## Exports (server)
 - ownsCrew(identifier) - returns true if player owns a crew
 - isInCrew(owner, identifier) - returns true if player is in crew
