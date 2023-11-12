@@ -17,5 +17,9 @@ Also feel free to make a PR.
 - Blips between members
 - Nametags above head
 
+## Requirements
+- oxmysql (https://github.com/overextended/oxmysql)
+- ox_lib (https://github.com/overextended/ox_lib)
+
 ## Known issues
 - Random blip duplication
