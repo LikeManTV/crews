@@ -21,6 +21,13 @@ Also feel free to make a PR.
 - [oxmysql](https://github.com/overextended/oxmysql)
 - [ox_lib](https://github.com/overextended/ox_lib)
 
+## Installation
+1. Download latest release or source code
+2. Extract the .zip file
+3. Copy the folder to your server resources folder
+4. Add `ensure crews` to your server.cfg
+5. Restart the server
+
 ## Known issues
 - Random blip duplication
 
