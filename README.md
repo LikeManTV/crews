@@ -28,6 +28,9 @@ Also feel free to make a PR.
 4. Add `ensure crews` to your server.cfg
 5. Restart the server
 
+`OPTIONAL` - If you want to have permissions compatible with HRS scripts.
+Follow the tutorial in `HRS-INTEGRATION.txt`
+
 ## Known issues
 - Random blip duplication
 
