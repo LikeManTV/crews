@@ -15,7 +15,7 @@ Also feel free to make a PR.
 - Ranks & permissions (WIP)
 - Settings
 - Blips between members
-- Nametags above head
+- Nametags above head (/crewTags to hide)
 
 ## Requirements
 - [oxmysql](https://github.com/overextended/oxmysql)
@@ -23,3 +23,8 @@ Also feel free to make a PR.
 
 ## Known issues
 - Random blip duplication
+
+## Exports (client)
+- getCrew - returns table with crew data
+- ownsCrew - returns true if player owns a crew
+- isInCrew - returns true if player is in crew
