@@ -464,70 +464,72 @@ CreateThread(function()
         if crew then
             for k,v in pairs(crew.data) do
                 local players = lib.callback.await('crews:blipUpdate', false)
-                for index, obj in pairs(players) do
-                    local blipPlayer = obj[1]
-                    local playerPed = NetworkDoesEntityExistWithNetworkId(obj[2]) and NetworkGetEntityFromNetworkId(obj[2]) or nil
-                    local ident = obj[3]
-                    local name = obj[4]
-                    local coords = obj[5]
-                    if name ~= GetPlayerName(GetPlayerIndex()) then
-                        if k == ident then
-                            if #(coords.xyz - GetEntityCoords(cache.ped).xyz) < 100.0 then
-                                if crewBlipsNear[k] == nil then
-                                    if crewBlipsLong[k] then
-                                        RemoveBlip(crewBlipsLong[k])
-                                        crewBlipsLong[k] = nil
-                                    end
-
-                                    local blip = AddBlipForEntity(playerPed)
-                                    SetBlipDisplay(blip, 2)
-                                    SetBlipSprite(blip, 1)
-                                    SetBlipColour(blip, 2)
-                                    SetBlipScale(blip, 0.7)
-                                    SetBlipCategory(blip, 7)
-                                    SetBlipShowCone(blip, true)
-                                    crewBlipsNear[k] = blip
-                                    
-                                    DisplayPlayerNameTagsOnBlips(true)
-                                    BeginTextCommandSetBlipName("STRING")
-                                    AddTextComponentSubstringPlayerName(name)
-                                    EndTextCommandSetBlipName(blip)
-                                end
-                            else
-                                if crewBlipsLong[k] == nil then
-                                    if crewBlipsNear[k] then
-                                        RemoveBlip(crewBlipsNear[k])
-                                        crewBlipsNear[k] = nil
-                                    end
-
-                                    if crewBlipsLong[k] and DoesBlipExist(crewBlipsLong[k]) then
-                                        local blip = crewBlipsLong[k]
-                                        SetBlipCoords(blip, coords.xyz)
-                                    else
-                                        local blip = AddBlipForCoord(coords.xyz)
+                if players then
+                    for index, obj in pairs(players) do
+                        local blipPlayer = obj[1]
+                        local playerPed = NetworkDoesEntityExistWithNetworkId(obj[2]) and NetworkGetEntityFromNetworkId(obj[2]) or nil
+                        local ident = obj[3]
+                        local name = obj[4]
+                        local coords = obj[5]
+                        if name ~= GetPlayerName(GetPlayerIndex()) then
+                            if k == ident then
+                                if #(coords.xyz - GetEntityCoords(cache.ped).xyz) < 100.0 then
+                                    if crewBlipsNear[k] == nil then
+                                        if crewBlipsLong[k] then
+                                            RemoveBlip(crewBlipsLong[k])
+                                            crewBlipsLong[k] = nil
+                                        end
+        
+                                        local blip = AddBlipForEntity(playerPed)
                                         SetBlipDisplay(blip, 2)
                                         SetBlipSprite(blip, 1)
                                         SetBlipColour(blip, 2)
                                         SetBlipScale(blip, 0.7)
                                         SetBlipCategory(blip, 7)
-                                        crewBlipsLong[k] = blip
+                                        SetBlipShowCone(blip, true)
+                                        crewBlipsNear[k] = blip
                                         
                                         DisplayPlayerNameTagsOnBlips(true)
                                         BeginTextCommandSetBlipName("STRING")
                                         AddTextComponentSubstringPlayerName(name)
                                         EndTextCommandSetBlipName(blip)
                                     end
+                                else
+                                    if crewBlipsLong[k] == nil then
+                                        if crewBlipsNear[k] then
+                                            RemoveBlip(crewBlipsNear[k])
+                                            crewBlipsNear[k] = nil
+                                        end
+        
+                                        if crewBlipsLong[k] and DoesBlipExist(crewBlipsLong[k]) then
+                                            local blip = crewBlipsLong[k]
+                                            SetBlipCoords(blip, coords.xyz)
+                                        else
+                                            local blip = AddBlipForCoord(coords.xyz)
+                                            SetBlipDisplay(blip, 2)
+                                            SetBlipSprite(blip, 1)
+                                            SetBlipColour(blip, 2)
+                                            SetBlipScale(blip, 0.7)
+                                            SetBlipCategory(blip, 7)
+                                            crewBlipsLong[k] = blip
+                                            
+                                            DisplayPlayerNameTagsOnBlips(true)
+                                            BeginTextCommandSetBlipName("STRING")
+                                            AddTextComponentSubstringPlayerName(name)
+                                            EndTextCommandSetBlipName(blip)
+                                        end
+                                    end
                                 end
-                            end
-
-                            if showTags then
-                                crewTags[k] = CreateFakeMpGamerTag(playerPed, '['..(crew.tag or 'nil')..'] '..name, false, false, "", 0, 0, 0, 0)
-                                SetMpGamerTagColour(crewTags[k], 0, 18)
-                                SetMpGamerTagVisibility(crewTags[k], 2, 1)
-                                SetMpGamerTagAlpha(crewTags[k], 2, 255)
-                                SetMpGamerTagHealthBarColor(crewTags[k], 129)
-                            else
-                                DeleteTag(k)
+        
+                                if showTags then
+                                    crewTags[k] = CreateFakeMpGamerTag(playerPed, '['..(crew.tag or 'nil')..'] '..name, false, false, "", 0, 0, 0, 0)
+                                    SetMpGamerTagColour(crewTags[k], 0, 18)
+                                    SetMpGamerTagVisibility(crewTags[k], 2, 1)
+                                    SetMpGamerTagAlpha(crewTags[k], 2, 255)
+                                    SetMpGamerTagHealthBarColor(crewTags[k], 129)
+                                else
+                                    DeleteTag(k)
+                                end
                             end
                         end
                     end
