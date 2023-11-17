@@ -236,7 +236,7 @@ local function openSettings()
                 local label = nil
                 if not input then return end
                 if not input[1] then label = false else label = input[1] end
-                if crewNames then
+                if #crewNames > 0 then
                     for _, name in pairs(crewNames) do
                         if name:lower():find(input[1]:lower()..' crew') then
                             lib.notify({title = 'CREW', description = 'This name is already used..', type = 'error'})
@@ -256,7 +256,7 @@ local function openSettings()
                 local input = lib.inputDialog('CHANGE TAG', {'Type here (4 chars.)..'})
                 if not input then return end
                 local tag = string.sub(input[1], 1, 4)
-                if crewTags then
+                if #crewTags > 0 then
                     for _, name in pairs(crewTags) do
                         if name:lower():find(tag:lower()) then
                             lib.notify({title = 'CREW', description = 'This tag is already used..', type = 'error'})
@@ -415,7 +415,7 @@ local function openCrewMenu()
                 if not input[1] then label = false else label = input[1] end
                 if not input[2] then return end
                 local tag = string.sub(input[2], 1, 4)
-                if crewNames then
+                if #crewNames > 0 then
                     for _, name in pairs(crewNames) do
                         if name:lower():find(input[1]:lower()..' crew') then
                             lib.notify({title = 'CREW', description = 'This name is already used..', type = 'error'})
@@ -423,7 +423,7 @@ local function openCrewMenu()
                         end
                     end
                 end
-                if crewTags then
+                if #crewTags > 0 then
                     for _, name in pairs(crewTags) do
                         if name:lower():find(tag:lower()) then
                             lib.notify({title = 'CREW', description = 'This tag is already used..', type = 'error'})
