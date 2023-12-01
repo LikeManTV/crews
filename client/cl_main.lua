@@ -22,16 +22,16 @@ RegisterNetEvent('crews:setCrew', function(newCrew)
     crew = newCrew
 end)
 
-RegisterNetEvent('crews:setInvites', function(invites)
-    invites = invites
+RegisterNetEvent('crews:setInvites', function(newInvites)
+    invites = newInvites
 end)
 
-RegisterNetEvent('crews:setNames', function(names)
-    crewNames = names
+RegisterNetEvent('crews:setNames', function(newNames)
+    crewNames = newNames
 end)
 
-RegisterNetEvent('crews:setTags', function(tags)
-    crewTags = tags
+RegisterNetEvent('crews:setTags', function(newTags)
+    crewTags = newTags
 end)
 
 RegisterNetEvent('crews:removeBlip', function(id)
