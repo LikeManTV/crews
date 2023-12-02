@@ -1,46 +1,51 @@
-This will explain how to make the script compatible with HRS scripts.
-
 HRS_BASE_BUILDING
-1. Open hrs_base_building > server > main_unlocked.lua
-2. Find `function hasPermission` and `function hasPermissionVeh` and replace it with this:
-
+Open hrs_base_building > server > main_unlocked.lua
+Find function hasPermission and function hasPermissionVeh and replace it with this:
 function hasPermission(identifier,id)
-	if identifier == props[id].identifier then
-		return true
-	end
+    if identifier == props[id].identifier then
+        return true
+    end
 
-	if exports.crews:hasCrew(identifier) and exports.crews:isInCrew(identifier,props[id].identifier) then
-		return true		
-	end
+    if exports.crews:ownsCrew(identifier) and exports.crews:isInCrew(identifier,props[id].identifier) then
+        return true
+    end
 
-	return false
+    return false
 end
 
-
-function hasPermissionVeh(identifier,identifier2)
-	if identifier == identifier2 then
-		return true
-	end
-
-	if exports.crews:hasCrew(identifier) and exports.crews:isInCrew(identifier,identifier2) then
-		return true		
-	end
-
-	return false
-end
-
-HRS_VEHICLES
-1. Open hrs_base_building > client > main_unlocked.lua
-2. Find `function haspermissionVeh(identifier,identifier2)` and replace it with this:
 
 function hasPermissionVeh(identifier,identifier2)
     if identifier == identifier2 then
         return true
     end
 
-    if exports.crews:isInCrew(identifier2) then
-        return true		
+    if exports.crews:ownsCrew(identifier) and exports.crews:isInCrew(identifier,identifier2) then
+        return true
     end
 
-	return false
+    return false
+end
+
+
+HRS_VEHICLES
+Open hrs_base_building > client > mainunlocked.lua
+Find function haspermissionVeh(identifier,identifier2) and replace it with this:
+
+function hasPermissionVeh(identifier, identifier2)
+    if identifier == identifier2 then
+        return true
+    end
+
+    local crewData = exports.crews:getCrew(identifier)
+    if not crewData or not crewData.data then
+        return false
+    end
+
+    for memberIdentifier, _ in pairs(crewData.data) do
+        if memberIdentifier == identifier2 then
+            return true
+        end
+    end
+
+    return false
 end
