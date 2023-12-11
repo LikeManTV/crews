@@ -16,16 +16,17 @@ CreateThread(function()
 	end)
 end)
 
-AddEventHandler('playerDropped', function(reason)
+RegisterNetEvent('esx:playerDropped', function(playerId, reason)
 	for k,v in pairs(onlineIdentifiers) do
-		if v == source then
+		if v == playerId then
 			onlineIdentifiers[k] = nil
 			break
 		end
 	end
-
-	local xPlayer = ESX.GetPlayerFromId(source)
-	TriggerClientEvent("crews:removePlayer", -1, crewByIdentifier[xPlayer.identifier], xPlayer.identifier)
+		
+	local xPlayer = ESX.GetPlayerFromId(playerId)
+	local identifier = xPlayer.identifier
+	TriggerClientEvent("crews:removePlayer", -1, crewByIdentifier[identifier], identifier)
 end)
 
 RegisterNetEvent('crews:getCrew', function()
