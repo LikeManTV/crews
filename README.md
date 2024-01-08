@@ -41,8 +41,8 @@ Also feel free to make a PR.
 - `isInCrew` - returns true if player is in crew
 
 ## Exports (server)
-- `ownsCrew(identifier)` - returns true if player owns a crew
-- `isInCrew(owner, identifier)` - returns true if player is in crew
+- `ownsCrew(netId)` - returns true if player owns a crew
+- `isInCrew(netId)` - returns true if player is in crew
 - `getCrewName(netId)` - returns crew name of players crew
 - `getCrewTag(netId)` - returns crew tag of players crew
-- `getCrewMembers(identifier)` - returns table containing server IDs of all members
+- `getCrewMembers(netId)` - returns table containing server IDs of all members
