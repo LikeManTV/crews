@@ -405,9 +405,10 @@ exports('getCrewTag', function(netId)
     return false
 end)
 
-exports('getCrewMembers', function(identifier)
+exports('getCrewMembers', function(id)
     local list = {}
 
+    local identifier = Functions.esx.GetIdentifier(id)
     for k,v in pairs(crews) do
         if v.data[identifier] then
             for target, _ in pairs(v.data) do
