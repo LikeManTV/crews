@@ -25,11 +25,12 @@ Also feel free to make a PR.
 1. Download latest release or source code
 2. Extract the .zip file
 3. Copy the folder to your server resources folder
-4. Add `ensure crews` to your server.cfg
-5. Restart the server
+4. Run the `SETUP/crews.sql` file
+5. Add `ensure crews` to your server.cfg
+6. Restart the server
 
 `OPTIONAL` - If you want to have permissions compatible with HRS scripts.
-Follow the tutorial in `HRS-INTEGRATION.txt`
+Follow the tutorial in `SETUP/HRS-INTEGRATION.txt`
 
 ## Known issues
 - Random blip duplication
