@@ -408,7 +408,7 @@ end)
 exports('getCrewMembers', function(id)
     local list = {}
 
-    local identifier = Functions.esx.GetIdentifier(id)
+    local identifier = Functions.[coreName].GetIdentifier(id)
     for k,v in pairs(crews) do
         if v.data[identifier] then
             for target, _ in pairs(v.data) do
