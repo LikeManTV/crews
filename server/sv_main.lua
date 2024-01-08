@@ -416,8 +416,8 @@ exports('getCrewMembers', function(netId)
     for k,v in pairs(crews) do
         if v.data[identifier] then
             for target, _ in pairs(v.data) do
-                local id = Functions[coreName].GetPlayerFromIdentifier(target)
-                table.insert(list, id.source)
+                local player = Functions[coreName].GetPlayerFromIdentifier(target)
+                table.insert(list, player.source)
             end
             return list
         end
