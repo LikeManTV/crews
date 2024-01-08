@@ -364,7 +364,7 @@ end)
 -- EXPORTS ------------------------------------------------------
 
 exports('ownsCrew', function(netId)
-    local identifier = Functions.[coreName].GetIdentifier(netId)
+    local identifier = Functions[coreName].GetIdentifier(netId)
 
     if crews[crewByIdentifier[identifier]] then
         return true
@@ -374,7 +374,7 @@ exports('ownsCrew', function(netId)
 end)
 
 exports('isInCrew', function(netId)
-	local identifier = Functions.[coreName].GetIdentifier(netId)
+	local identifier = Functions[coreName].GetIdentifier(netId)
 		
 	for k,v in pairs(crews) do
 		if v.data[identifier] then
@@ -412,7 +412,7 @@ end)
 exports('getCrewMembers', function(netId)
     local list = {}
 
-    local identifier = Functions.[coreName].GetIdentifier(netId)
+    local identifier = Functions[coreName].GetIdentifier(netId)
     for k,v in pairs(crews) do
         if v.data[identifier] then
             for target, _ in pairs(v.data) do
