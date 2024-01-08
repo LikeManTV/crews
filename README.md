@@ -36,12 +36,13 @@ Follow the tutorial in `SETUP/HRS-INTEGRATION.txt`
 - Random blip duplication
 
 ## Exports (client)
-- getCrew - returns table with crew data
-- ownsCrew - returns true if player owns a crew
-- isInCrew - returns true if player is in crew
+- `getCrew` - returns table with crew data
+- `ownsCrew` - returns true if player owns a crew
+- `isInCrew` - returns true if player is in crew
 
 ## Exports (server)
-- ownsCrew(identifier) - returns true if player owns a crew
-- isInCrew(owner, identifier) - returns true if player is in crew
-- getCrewName(netId) - returns crew name of players crew
-- getCrewTag(netId) - returns crew tag of players crew
+- `ownsCrew(identifier)` - returns true if player owns a crew
+- `isInCrew(owner, identifier)` - returns true if player is in crew
+- `getCrewName(netId)` - returns crew name of players crew
+- `getCrewTag(netId)` - returns crew tag of players crew
+- `getCrewMembers(identifier)` - returns table containing server IDs of all members
