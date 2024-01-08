@@ -363,8 +363,10 @@ end)
 
 -- EXPORTS ------------------------------------------------------
 
-exports('ownsCrew', function(identifier)
-	if crews[crewByIdentifier[identifier]] then
+exports('ownsCrew', function(netId)
+    local identifier = Functions.[coreName].GetIdentifier(netId)
+
+    if crews[crewByIdentifier[identifier]] then
         return true
     end
 
