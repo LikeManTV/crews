@@ -287,7 +287,9 @@ RegisterServerEvent('crews:removeFromCrew', function(yidentifier)
 		crewByIdentifier[yidentifier] = nil
 
 		TriggerClientEvent('crews:removePlayer', -1, identifier, yidentifier)
-		TriggerClientEvent('crews:playerLeft', target.source, identifier)
+		if target then
+			TriggerClientEvent('crews:playerLeft', target.source, identifier)
+		end
 
 		if onlineIdentifiers[yidentifier] then
 			TriggerClientEvent('crews:setCrew', onlineIdentifiers[yidentifier], nil)
