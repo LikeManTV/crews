@@ -51,8 +51,8 @@ AddEventHandler('onResourceStart', function(resourceName)
     if coreName == 'esx' then
         myIdentifier = core.PlayerData.identifier
     elseif coreName == 'qb' then
-        local playerData = QBCore.Functions.GetPlayerData
-        -- myIdentifier = playerData.
+        local playerData = QBCore.Functions.GetPlayer(source)
+        myIdentifier = playerData.citizenid
     end
 end)
 
