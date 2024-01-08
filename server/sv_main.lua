@@ -1,10 +1,54 @@
-local crews, invites = {}, {}
-local crewNames, crewTags = {}, {}
-local crewByIdentifier = {}
-local onlineIdentifiers = {}
+crews, invites = {}, {}
+crewNames, crewTags = {}, {}
+crewByIdentifier = {}
+onlineIdentifiers = {}
+core, coreName = false, false
+
+----------------------------------------------------------------
+
+if GetResourceState('es_extended') == 'started' then
+    core = exports["es_extended"]:getSharedObject()
+    coreName = 'esx'
+elseif GetResourceState('qb-core') == 'started' then
+    core = exports['qb-core']:GetCoreObject()
+    coreName = 'qb'
+else
+    print('Framework is missing, script will not work..')
+    StopResource()
+    return
+end
+
+Functions = {}
+
+Functions.esx = {}
+Functions.esx.GetPlayer = function(src)
+    return core.GetPlayerFromId(src) 
+end
+Functions.esx.GetIdentifier = function(src)
+    local player = core.GetPlayerFromId(src)
+    return player.getIdentifier()
+end
+Functions.esx.GetPlayerFromIdentifier = function(identifier)
+    return core.GetPlayerFromIdentifier(identifier)
+end
+
+Functions.qb = {}
+Functions.qb.GetPlayer = function(src)
+    return core.Functions.GetPlayer(src)
+end
+Functions.qb.GetIdentifier = function(src)
+    local player = core.Functions.GetPlayer(src)
+    return player.PlayerData.citizenid
+end
+Functions.qb.GetPlayerFromIdentifier = function(identifier)
+    local player = core.Functions.GetPlayerByCitizenId(identifier)
+    return player.PlayerData
+end
+
+----------------------------------------------------------------
 
 CreateThread(function()
-	MySQL.Async.fetchAll("SELECT * FROM crews", {}, function(result)		
+    MySQL.Async.fetchAll("SELECT * FROM crews", {}, function(result)		
 		for k,v in ipairs(result) do
 			crews[v.owner] = {data = json.decode(v.data), label = v.label, tag = v.tag, owner = v.owner}
 			table.insert(crewNames, v.label)
@@ -16,23 +60,23 @@ CreateThread(function()
 	end)
 end)
 
-RegisterNetEvent('esx:playerDropped', function(playerId, reason)
+-- EVENTS ------------------------------------------------------
+
+AddEventHandler('playerDropped', function(reason)
 	for k,v in pairs(onlineIdentifiers) do
-		if v == playerId then
+		if v == source then
 			onlineIdentifiers[k] = nil
 			break
 		end
 	end
-		
-	local xPlayer = ESX.GetPlayerFromId(playerId)
-	local identifier = xPlayer.identifier
+
+	local identifier = Functions[coreName].GetIdentifier(source)
 	TriggerClientEvent("crews:removePlayer", -1, crewByIdentifier[identifier], identifier)
 end)
 
-RegisterNetEvent('crews:getCrew', function()
-	local source = source
-	local xPlayer = ESX.GetPlayerFromId(source)
-	local identifier = xPlayer.identifier
+RegisterServerEvent('crews:getCrew', function()
+    local source = source
+	local identifier = Functions[coreName].GetIdentifier(source)
 
 	onlineIdentifiers[identifier] = source
 
@@ -47,20 +91,19 @@ RegisterNetEvent('crews:getCrew', function()
 	TriggerClientEvent('crews:setTags', source, crewTags)
 end)
 
-RegisterNetEvent('crews:getNames', function()
+RegisterServerEvent('crews:getNames', function()
 	local source = source
 	TriggerClientEvent('crews:setNames', source, crewNames)
 end)
 
-RegisterNetEvent('crews:getTags', function()
+RegisterServerEvent('crews:getTags', function()
 	local source = source
 	TriggerClientEvent('crews:setTags', source, crewTags)
 end)
 
-RegisterNetEvent('crews:createCrew', function(label, tag)
+RegisterServerEvent('crews:createCrew', function(label, tag)
 	local source = source
-	local xPlayer = ESX.GetPlayerFromId(source)
-	local identifier = xPlayer.identifier
+	local identifier = Functions[coreName].GetIdentifier(source)
 	local name = GetPlayerName(source)
 
 	if label then
@@ -82,7 +125,7 @@ RegisterNetEvent('crews:createCrew', function(label, tag)
 		crewByIdentifier[identifier] = identifier
 
 		TriggerClientEvent('crews:setCrew', source, crews[identifier])
-		lib.notify(source,{title = 'CREW', description = ('Successfuly created: %s'):format(label), type = 'success'})
+        TriggerClientEvent('crews:notify', source, _L('create_success', {label}), 'success')
 
 		MySQL.Async.execute('INSERT INTO crews (owner, label, tag, data) VALUES (@owner, @label, @tag, @data)',
 		{
@@ -97,10 +140,9 @@ RegisterNetEvent('crews:createCrew', function(label, tag)
 	end
 end)
 
-RegisterNetEvent('crews:deleteCrew', function()
+RegisterServerEvent('crews:deleteCrew', function()
 	local source = source
-	local xPlayer = ESX.GetPlayerFromId(source)
-	local identifier = xPlayer.identifier
+	local identifier = Functions[coreName].GetIdentifier(source)
 
 	if crews[identifier] then
 		for k, v in pairs(crews[identifier].data) do
@@ -112,7 +154,7 @@ RegisterNetEvent('crews:deleteCrew', function()
 			end
 		end
 
-		lib.notify(source,{title = 'CREW', description = ('Successfuly deleted: %s'):format(crews[identifier].label), type = 'error'})
+        TriggerClientEvent('crews:notify', source, {_L('delete_success', {crews[identifier].label}), 'success'})
 
 		crews[identifier] = nil
 
@@ -122,25 +164,22 @@ RegisterNetEvent('crews:deleteCrew', function()
 	end
 end)
 
-RegisterNetEvent('crews:addToCrew', function(id)
+RegisterServerEvent('crews:addToCrew', function(id)
 	local source = source
-	local xPlayer = ESX.GetPlayerFromId(source)
-	local identifier = xPlayer.identifier
-
-	local target = id 
-	local xTarget = ESX.GetPlayerFromId(target)
-	local yidentifier = xTarget.identifier
+	local target = id
+	local identifier = Functions[coreName].GetIdentifier(source)
+    local yidentifier = Functions[coreName].GetIdentifier(target)
 
 	if crewByIdentifier[yidentifier] then
-		lib.notify(source,{title = 'CREW', description = 'This player is already a part of another crew.', type = 'error'})
+        TriggerClientEvent('crews:notify', source, _L('error_player_in_crew'), 'error')
 	else
 		if crews[identifier] then
 			local limit = false
-			if Config.MaxCrewMembers then
+			if CONFIG.CREW_SETTINGS.MAX_CREW_MEMBERS then
 				local count = 0
 				for k,v in pairs(crews[identifier].data) do
 					count = count + 1
-					if count >= Config.MaxCrewMembers then
+					if count >= CONFIG.CREW_SETTINGS.MAX_CREW_MEMBERS then
 						limit = true
 						break
 					end
@@ -148,40 +187,38 @@ RegisterNetEvent('crews:addToCrew', function(id)
 			end
 
 			if limit then
-				lib.notify(source,{title = 'CREW', description = ('You have reached the player limit! (%s)'):format(Config.MaxCrewMembers), type = 'error'})
+                TriggerClientEvent('crews:notify', source, _L('error_limit_reached', {CONFIG.CREW_SETTINGS.MAX_CREW_MEMBERS}), 'error')
 			else
 				if not invites[yidentifier] then invites[yidentifier] = {} end
 
 				if not invites[yidentifier][identifier] then
 					invites[yidentifier][identifier] = crews[identifier].label
 					
-					TriggerClientEvent('crews:setInvites', id, invites[yidentifier])
-
-					lib.notify(xTarget.source,{title = 'CREW', description = 'You have received a crew invite!', type = 'inform'})
-					lib.notify(source,{title = 'CREW', description = ('You invited: %s into the crew!'):format(GetPlayerName(target)), type = 'success'})
+					TriggerClientEvent('crews:setInvites', target, invites[yidentifier])
+                    TriggerClientEvent('crews:notify', target, _L('invites_received_new'), 'inform')
+                    TriggerClientEvent('crews:notify', source, _L('invite_success', {GetPlayerName(target)}), 'success')
 				else
-					lib.notify(source,{title = 'CREW', description = 'You have already invited this player.', type = 'error'})
+                    TriggerClientEvent('crews:notify', source, _L('error_already_invited'), 'error')
 				end
 			end
 		else
-			lib.notify(source,{title = 'CREW', description = "You don't have a crew!", type = 'error'})
+            TriggerClientEvent('crews:notify', source, _L('error_no_crew'), 'error')
 		end
 	end
 end)
 
-RegisterNetEvent('crews:acceptCrew', function(ident)
+RegisterServerEvent('crews:acceptCrew', function(ident)
 	local source = source
-	local xPlayer = ESX.GetPlayerFromId(source)
-	local identifier = xPlayer.identifier
+	local identifier = Functions[coreName].GetIdentifier(source)
 
 	if invites[identifier] and invites[identifier][ident] and crews[ident] then
 
 		local limit = false
-		if Config.MaxCrewMembers then
+		if CONFIG.CREW_SETTINGS.MAX_CREW_MEMBERS then
 			local count = 0
 			for k,v in pairs(crews[ident].data) do
 				count = count + 1
-				if count >= Config.MaxCrewMembers then
+				if count >= CONFIG.CREW_SETTINGS.MAX_CREW_MEMBERS then
 					limit = true
 					break
 				end
@@ -189,7 +226,7 @@ RegisterNetEvent('crews:acceptCrew', function(ident)
 		end
 
 		if limit then
-			lib.notify(source,{title = 'CREW', description = ('This crew has reached the player limit. (%s)'):format(Config.MaxCrewMembers), type = 'error'})
+            TriggerClientEvent('crews:notify', source, _L('error_limit_reached', {CONFIG.CREW_SETTINGS.MAX_CREW_MEMBERS}), 'error')
 		else
 			crews[ident].data[identifier] = GetPlayerName(source)
 			crewByIdentifier[identifier] = ident
@@ -203,8 +240,7 @@ RegisterNetEvent('crews:acceptCrew', function(ident)
 			invites[identifier] = nil
 
 			TriggerClientEvent('crews:setInvites', onlineIdentifiers[identifier], nil)
-
-			lib.notify(source,{title = 'CREW', description = ('You have joined: %s'):format(crews[ident].label), type = 'success'})
+            TriggerClientEvent('crews:notify', source, _L('invites_success', {crews[ident].label}), 'success')
 			
 			MySQL.Async.execute('UPDATE crews SET data = @data WHERE owner = @owner', {
 				['@data'] = json.encode(crews[ident].data),
@@ -214,10 +250,9 @@ RegisterNetEvent('crews:acceptCrew', function(ident)
 	end
 end)
 
-RegisterNetEvent('crews:leaveCrew', function()
+RegisterServerEvent('crews:leaveCrew', function()
 	local source = source
-	local xPlayer = ESX.GetPlayerFromId(source)
-	local identifier = xPlayer.identifier
+	local identifier = Functions[coreName].GetIdentifier(source)
 
 	if crewByIdentifier[identifier] and crews[crewByIdentifier[identifier]] then
 		local ident = crewByIdentifier[identifier]
@@ -225,8 +260,8 @@ RegisterNetEvent('crews:leaveCrew', function()
 		crews[ident].data[identifier] = nil
 		crewByIdentifier[identifier] = nil
 		
-		TriggerClientEvent('crews:removePlayer', -1, ident, xPlayer.identifier)
-		TriggerClientEvent('crews:playerLeft', xPlayer.source, ident)
+		TriggerClientEvent('crews:removePlayer', -1, ident, identifier)
+		TriggerClientEvent('crews:playerLeft', source, ident)
 		TriggerClientEvent('crews:setCrew', source, nil)
 
 		for k, v in pairs(crews[ident].data) do
@@ -242,11 +277,10 @@ RegisterNetEvent('crews:leaveCrew', function()
 	end
 end)
 
-RegisterNetEvent('crews:removeFromCrew', function(yidentifier)
+RegisterServerEvent('crews:removeFromCrew', function(yidentifier)
 	local source = source
-	local xPlayer = ESX.GetPlayerFromId(source)
-	local identifier = xPlayer.identifier
-	local target = ESX.GetPlayerFromIdentifier(yidentifier)
+	local identifier = Functions[coreName].GetIdentifier(source)
+    local target = Functions[coreName].GetPlayerFromIdentifier(yidentifier)
 
 	if crews[identifier] and yidentifier ~= identifier then
 		crews[identifier].data[yidentifier] = nil
@@ -266,7 +300,7 @@ RegisterNetEvent('crews:removeFromCrew', function(yidentifier)
 		end
 
 		if onlineIdentifiers[yidentifier] then
-			lib.notify(target.source,{title = 'CREW', description = 'You have been kicked from your crew!', type = 'inform'})
+            TriggerClientEvent('crews:notify', target.source, _L('player_kicked'), 'inform')
 		end
 
 		MySQL.Async.execute('UPDATE crews SET data = @data WHERE owner = @owner', {
@@ -276,14 +310,13 @@ RegisterNetEvent('crews:removeFromCrew', function(yidentifier)
 	end
 end)
 
-RegisterNetEvent('crews:rename', function(newName)
+RegisterServerEvent('crews:rename', function(newName)
 	local source = source
-	local xPlayer = ESX.GetPlayerFromId(source)
-	local identifier = xPlayer.identifier
+	local identifier = Functions[coreName].GetIdentifier(source)
 
 	if newName then
 		crews[identifier].label = newName..' Crew'
-		lib.notify(source,{title = 'CREW', description = ('Your crew was renamed to: %s Crew'):format(newName), type = 'success'})
+        TriggerClientEvent('crews:notify', source, _L('rename_success', {newName}), 'success')
 	else
 		crews[identifier].label = GetPlayerName(source)..' Crew'
 	end
@@ -297,13 +330,12 @@ RegisterNetEvent('crews:rename', function(newName)
 	TriggerClientEvent('crews:setNames', source, crewNames)
 end)
 
-RegisterNetEvent('crews:newTag', function(newTag)
+RegisterServerEvent('crews:newTag', function(newTag)
 	local source = source
-	local xPlayer = ESX.GetPlayerFromId(source)
-	local identifier = xPlayer.identifier
+	local identifier = Functions[coreName].GetIdentifier(source)
 
 	crews[identifier].tag = newTag
-	lib.notify(source,{title = 'CREW', description = ('Your crew tag was changed to: %s'):format(newTag), type = 'success'})
+    TriggerClientEvent('crews:notify', source, _L('tag_success', {newTag}), 'success')
 
 	MySQL.Async.execute('UPDATE crews SET tag = @tag WHERE owner = @owner', {
 		['@tag'] = newTag,
@@ -319,8 +351,7 @@ lib.callback.register('crews:blipUpdate', function(source)
     local players = GetPlayers()
     for index, player in ipairs(players) do
 		local ped = GetPlayerPed(player)
-		local xPlayer = ESX.GetPlayerFromId(player)
-		local identifier = xPlayer.identifier
+        local identifier = Functions[coreName].GetIdentifier(player)
 		local coords = GetEntityCoords(ped)
 		local name = GetPlayerName(player)
 
@@ -329,6 +360,8 @@ lib.callback.register('crews:blipUpdate', function(source)
 	
 	return blips
 end)
+
+-- EXPORTS ------------------------------------------------------
 
 exports('ownsCrew', function(identifier)
 	if crews[crewByIdentifier[identifier]] then
@@ -370,4 +403,20 @@ exports('getCrewTag', function(netId)
 	end
 
     return false
+end)
+
+exports('getCrewMembers', function(identifier)
+    local list = {}
+
+    for k,v in pairs(crews) do
+        if v.data[identifier] then
+            for target, _ in pairs(v.data) do
+                local id = Functions[coreName].GetPlayerFromIdentifier(target)
+                table.insert(list, id.source)
+            end
+            return list
+        end
+    end
+
+    return nil
 end)

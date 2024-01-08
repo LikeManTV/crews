@@ -4,13 +4,13 @@ lua54 'yes'
 
 author 'LikeManTV'
 name 'crews'
-description 'Crew system'
+description 'Crew System'
+version '2.0.0'
 
 shared_scripts {
-    '@es_extended/imports.lua',
     '@ox_lib/init.lua',
     'config.lua',
-    'locale.lua',
+    'shared/locale.lua',
     'locales/*.lua'
 }
 
