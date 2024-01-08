@@ -30,7 +30,7 @@ Also feel free to make a PR.
 6. Restart the server
 
 `OPTIONAL` - If you want to have permissions compatible with HRS scripts.
-Follow the tutorial in `SETUP/HRS-INTEGRATION.txt`
+- Follow the tutorial in `SETUP/HRS-INTEGRATION.txt`
 
 ## Known issues
 - Random blip duplication
