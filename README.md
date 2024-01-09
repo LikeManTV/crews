@@ -36,9 +36,10 @@ Also feel free to make a PR.
 - Random blip duplication
 
 ## Exports (client)
-- `getCrew` - returns table with crew data
-- `ownsCrew` - returns true if player owns a crew
-- `isInCrew` - returns true if player is in crew
+- `getCrew()` - returns table with crew data
+- `ownsCrew()` - returns true if player owns a crew
+- `isInCrew()` - returns true if player is in crew
+- `getCrewOwner()` - returns the identifier of your current crew owner
 
 ## Exports (server)
 - `ownsCrew(netId)` - returns true if player owns a crew
@@ -46,3 +47,5 @@ Also feel free to make a PR.
 - `getCrewName(netId)` - returns crew name of players crew
 - `getCrewTag(netId)` - returns crew tag of players crew
 - `getCrewMembers(netId)` - returns table containing server IDs of all members
+
+Credits: Vallorz
