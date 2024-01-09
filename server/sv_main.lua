@@ -365,6 +365,14 @@ end)
 
 -- EXPORTS ------------------------------------------------------
 
+exports('getCrew', function(identifier)
+	if crews[crewByIdentifier[identifier]] then
+		return crews[crewByIdentifier[identifier]]
+	end
+
+	return false
+end)
+
 exports('ownsCrew', function(netId)
     local identifier = Functions[coreName].GetIdentifier(netId)
 
@@ -434,6 +442,16 @@ exports('getCrewTag', function(netId)
 			if name == GetPlayerName(netId) then
 				return v.tag
 			end
+		end
+	end
+
+    return false
+end)
+
+exports('getCrewOwner', function(identifier)
+	for k,v in pairs(crews) do
+		if v.data[identifier] then
+			return k
 		end
 	end
 
