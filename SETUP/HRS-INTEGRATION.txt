@@ -2,30 +2,24 @@
 █░█ █▀█ █▀   █▄▄ ▄▀█ █▀ █▀▀   █▄▄ █░█ █ █░░ █▀▄ █ █▄░█ █▀▀
 █▀█ █▀▄ ▄█   █▄█ █▀█ ▄█ ██▄   █▄█ █▄█ █ █▄▄ █▄▀ █ █░▀█ █▄█
 
-Open hrs_base_building > server > main_unlocked.lua
-Find function hasPermission and function hasPermissionVeh and replace it with this:
+1. Open hrs_base_building > **server** > main_unlocked.lua
+2. Find function hasPermission and replace it with this:
 
 function hasPermission(identifier,id)
     if identifier == props[id].identifier then
         return true
     end
 
-    if exports.crews:ownsCrew(identifier) and exports.crews:isInCrew(identifier,props[id].identifier) then
-        return true
-    end
-
-    return false
-end
-
-
-function hasPermissionVeh(identifier,identifier2)
-    if identifier == identifier2 then
-        return true
-    end
-
-    if exports.crews:ownsCrew(identifier) and exports.crews:isInCrew(identifier,identifier2) then
-        return true
-    end
+	if exports.crews:isInCrew2(identifier) then
+		local crewData = exports.crews:getCrew(identifier)
+		if crewData then
+			for k,v in pairs(crewData) do
+				if crewData.data[identifier] and crewData.data[props[id].identifier] then
+					return true
+				end
+			end
+		end
+	end
 
     return false
 end
@@ -34,24 +28,46 @@ end
 █░█ █▀█ █▀   █░█ █▀▀ █░█ █ █▀▀ █░░ █▀▀ █▀
 █▀█ █▀▄ ▄█   ▀▄▀ ██▄ █▀█ █ █▄▄ █▄▄ ██▄ ▄█
 
-Open hrs_base_building > client > main_unlocked.lua
-Find function haspermissionVeh and replace it with this:
+1. Open hrs_base_building > **server** > main_unlocked.lua
+2. Find function hasPermissionVeh and replace it with this:
 
-function hasPermissionVeh(identifier, identifier2)
+function hasPermissionVeh(identifier,identifier2)
     if identifier == identifier2 then
         return true
     end
 
-    local crewData = exports.crews:getCrew(identifier)
-    if not crewData or not crewData.data then
-        return false
-    end
-
-    for memberIdentifier, _ in pairs(crewData.data) do
-        if memberIdentifier == identifier2 then
-            return true
-        end
-    end
+	if exports.crews:isInCrew2(identifier) then
+		local crewData = exports.crews:getCrew(identifier)
+		if crewData then
+			for k,v in pairs(crewData) do
+				if crewData.data[identifier] and crewData.data[identifier2] then
+					return true
+				end
+			end
+		end
+	end
 
     return false
+end
+
+1. Open hrs_base_building > **client** > main_unlocked.lua
+2. Find function hasPermissionVeh and replace it with this:
+
+function hasPermissionVeh(identifier,identifier2)
+    if identifier == identifier2 then
+        return true
+    end
+
+	if exports.crews:isInCrew() then
+		local crewData = exports.crews:getCrew()
+		if crewData then
+			for k,v in pairs(crewData) do
+				if crewData.data[identifier] and crewData.data[identifier2] then
+					return true
+				end
+			end
+		end
+	end
+
+	return false
 end
