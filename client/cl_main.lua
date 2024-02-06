@@ -24,6 +24,9 @@ if GetResourceState('es_extended') == 'started' then
 elseif GetResourceState('qb-core') == 'started' then
     core = exports['qb-core']:GetCoreObject()
     coreName = 'qb'
+elseif GetResourceState('ox_core') == 'started' then
+    print('Detected ox_core which is not yet supported.')
+    return
 else
     print('Framework is missing, script will not work..')
     return
