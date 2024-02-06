@@ -63,20 +63,20 @@ end
 
 -- EVENTS ------------------------------------------------------
 
-AddEventHandler('onResourceStart', function(resourceName)
-    if (GetCurrentResourceName() ~= resourceName) then
-      return
-    end
-
-    if coreName == 'esx' then
-        myIdentifier = core.PlayerData.identifier
-    elseif coreName == 'qb' then
-        local playerData = core.Functions.GetPlayer(source)
-        myIdentifier = playerData.citizenid
-    end
-    TriggerServerEvent('crews:getCrew')
-    startLoop()
-end)
+--AddEventHandler('onResourceStart', function(resourceName)
+--    if (GetCurrentResourceName() ~= resourceName) then
+--      return
+--    end
+--
+--    if coreName == 'esx' then
+--        myIdentifier = core.PlayerData.identifier
+--    elseif coreName == 'qb' then
+--        local playerData = core.Functions.GetPlayer(source)
+--        myIdentifier = playerData.citizenid
+--    end
+--    TriggerServerEvent('crews:getCrew')
+--    startLoop()
+--end)
 
 RegisterNetEvent('crews:openMainMenu', function()
     crewMenu.openMainMenu()
