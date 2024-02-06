@@ -12,14 +12,14 @@ Also feel free to make a PR.
 - Crew tag & name
 - Player invitation
 - Member management
- - Ranks & permissions (WIP)
- - Crew ownership transfer (WIP)
+  - Ranks & permissions (WIP)
+  - Crew ownership transfer (WIP)
 - Settings
- - Rename crew
- - Change tag
+  - Rename crew
+  - Change tag
 - Blips between members
 - Nametags above head (/crewTags to hide)
- - Player's health
+  - Player's health
 
 ## Dependencies
 - [oxmysql](https://github.com/overextended/oxmysql)
