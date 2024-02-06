@@ -121,7 +121,7 @@ crewMenu = {
                 icon = "plus",
                 title = _L('main_menu_create_title'),
                 onSelect = function()
-                    local input = lib.inputDialog(_L('main_menu_create_title'), {'Enter name..', 'Enter tag.. (4 chars.)'})
+                    local input = lib.inputDialog(_L('main_menu_create_title'), {_L('create_name_desc'), _L('create_tag_desc')})
                     local label = nil
                     if not input then return end
                     if not input[1] then label = false else label = input[1] end
