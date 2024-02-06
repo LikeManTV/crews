@@ -12,10 +12,14 @@ Also feel free to make a PR.
 - Crew tag & name
 - Player invitation
 - Member management
-- Ranks & permissions (WIP)
+ - Ranks & permissions (WIP)
+ - Crew ownership transfer (WIP)
 - Settings
+ - Rename crew
+ - Change tag
 - Blips between members
 - Nametags above head (/crewTags to hide)
+ - Player's health
 
 ## Dependencies
 - [oxmysql](https://github.com/overextended/oxmysql)
@@ -43,9 +47,12 @@ Also feel free to make a PR.
 
 ## Exports (server)
 - `ownsCrew(netId)` - returns true if player owns a crew
-- `isInCrew(netId)` - returns true if player is in crew
+- `ownsCrew2(identifier)` - returns true if player owns a crew
+- `isInCrew(netId)` - returns true if player is in a crew
+- `isInCrew2(identifier)` - returns true if player is in a crew
+- `isInPlayersCrew(owner, player)` - returns true if player is in other player's crew (uses identifiers)
 - `getCrewName(netId)` - returns crew name of players crew
 - `getCrewTag(netId)` - returns crew tag of players crew
 - `getCrewMembers(netId)` - returns table containing server IDs of all members
 
-Credits: Vallorz
+Credits: Vallorz, HRS
