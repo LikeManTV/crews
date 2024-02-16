@@ -2,48 +2,6 @@ crews, invites = {}, {}
 crewNames, crewTags = {}, {}
 crewByIdentifier = {}
 onlineIdentifiers = {}
-core, coreName = false, false
-
-----------------------------------------------------------------
-
-if GetResourceState('es_extended') == 'started' then
-    core = exports["es_extended"]:getSharedObject()
-    coreName = 'esx'
-elseif GetResourceState('qb-core') == 'started' then
-    core = exports['qb-core']:GetCoreObject()
-    coreName = 'qb'
-else
-    print('Framework is missing, script will not work..')
-    StopResource()
-    return
-end
-
-Functions = {}
-
-Functions.esx = {}
-Functions.esx.GetPlayer = function(src)
-    return core.GetPlayerFromId(src) 
-end
-Functions.esx.GetIdentifier = function(src)
-    local player = core.GetPlayerFromId(src)
-    return player.getIdentifier()
-end
-Functions.esx.GetPlayerFromIdentifier = function(identifier)
-    return core.GetPlayerFromIdentifier(identifier)
-end
-
-Functions.qb = {}
-Functions.qb.GetPlayer = function(src)
-    return core.Functions.GetPlayer(src)
-end
-Functions.qb.GetIdentifier = function(src)
-    local player = core.Functions.GetPlayer(src)
-    return player.PlayerData.citizenid
-end
-Functions.qb.GetPlayerFromIdentifier = function(identifier)
-    local player = core.Functions.GetPlayerByCitizenId(identifier)
-    return player.PlayerData
-end
 
 ----------------------------------------------------------------
 
@@ -63,6 +21,9 @@ end)
 -- EVENTS ------------------------------------------------------
 
 AddEventHandler('playerDropped', function(reason)
+	local source = source
+	local identifier = getIdentifier(source)
+
 	for k,v in pairs(onlineIdentifiers) do
 		if v == source then
 			onlineIdentifiers[k] = nil
@@ -70,13 +31,11 @@ AddEventHandler('playerDropped', function(reason)
 		end
 	end
 
-	local identifier = Functions[coreName].GetIdentifier(source)
 	TriggerClientEvent("crews:removePlayer", -1, crewByIdentifier[identifier], identifier)
 end)
 
-RegisterServerEvent('crews:getCrew', function()
+RegisterServerEvent('crews:getCrew', function(identifier)
     local source = source
-	local identifier = Functions[coreName].GetIdentifier(source)
 
 	onlineIdentifiers[identifier] = source
 
@@ -103,7 +62,7 @@ end)
 
 RegisterServerEvent('crews:createCrew', function(label, tag)
 	local source = source
-	local identifier = Functions[coreName].GetIdentifier(source)
+	local identifier = getIdentifier(source)
 	local name = GetPlayerName(source)
 
 	if label then
@@ -114,12 +73,12 @@ RegisterServerEvent('crews:createCrew', function(label, tag)
 
 	if not crews[identifier] and not crewByIdentifier[identifier] then
 		crews[identifier] = {
+			owner = identifier,
 			label = label,
 			tag = tag,
 			data = {
 				[identifier] = name
-			},
-			owner = identifier
+			}
 		}
 
 		crewByIdentifier[identifier] = identifier
@@ -142,7 +101,7 @@ end)
 
 RegisterServerEvent('crews:deleteCrew', function()
 	local source = source
-	local identifier = Functions[coreName].GetIdentifier(source)
+	local identifier = getIdentifier(source)
 
 	if crews[identifier] then
 		for k, v in pairs(crews[identifier].data) do
@@ -154,7 +113,7 @@ RegisterServerEvent('crews:deleteCrew', function()
 			end
 		end
 
-        TriggerClientEvent('crews:notify', source, {_L('delete_success', {crews[identifier].label}), 'success'})
+        TriggerClientEvent('crews:notify', source, _L('delete_success', {crews[identifier].label}), 'success')
 
 		crews[identifier] = nil
 
@@ -167,8 +126,8 @@ end)
 RegisterServerEvent('crews:addToCrew', function(id)
 	local source = source
 	local target = id
-	local identifier = Functions[coreName].GetIdentifier(source)
-    local yidentifier = Functions[coreName].GetIdentifier(target)
+	local identifier = getIdentifier(source)
+    local yidentifier = getIdentifier(target)
 
 	if crewByIdentifier[yidentifier] then
         TriggerClientEvent('crews:notify', source, _L('error_player_in_crew'), 'error')
@@ -209,7 +168,7 @@ end)
 
 RegisterServerEvent('crews:acceptCrew', function(ident)
 	local source = source
-	local identifier = Functions[coreName].GetIdentifier(source)
+	local identifier = getIdentifier(source)
 
 	if invites[identifier] and invites[identifier][ident] and crews[ident] then
 
@@ -252,7 +211,7 @@ end)
 
 RegisterServerEvent('crews:leaveCrew', function()
 	local source = source
-	local identifier = Functions[coreName].GetIdentifier(source)
+	local identifier = getIdentifier(source)
 
 	if crewByIdentifier[identifier] and crews[crewByIdentifier[identifier]] then
 		local ident = crewByIdentifier[identifier]
@@ -279,8 +238,9 @@ end)
 
 RegisterServerEvent('crews:removeFromCrew', function(yidentifier)
 	local source = source
-	local identifier = Functions[coreName].GetIdentifier(source)
-    local target = Functions[coreName].GetPlayerFromIdentifier(yidentifier)
+	local identifier = getIdentifier(source)
+    local target = getPlayerFromIdentifier(yidentifier)
+	if target == nil then return end
 
 	if crews[identifier] and yidentifier ~= identifier then
 		crews[identifier].data[yidentifier] = nil
@@ -314,7 +274,7 @@ end)
 
 RegisterServerEvent('crews:rename', function(newName)
 	local source = source
-	local identifier = Functions[coreName].GetIdentifier(source)
+	local identifier = getIdentifier(source)
 
 	if newName then
 		crews[identifier].label = newName..' Crew'
@@ -334,7 +294,7 @@ end)
 
 RegisterServerEvent('crews:newTag', function(newTag)
 	local source = source
-	local identifier = Functions[coreName].GetIdentifier(source)
+	local identifier = getIdentifier(source)
 
 	crews[identifier].tag = newTag
     TriggerClientEvent('crews:notify', source, _L('tag_success', {newTag}), 'success')
@@ -350,14 +310,11 @@ end)
 
 lib.callback.register('crews:blipUpdate', function(source)
 	local blips = {}
-    local players = GetPlayers()
-    for index, player in ipairs(players) do
-		local ped = GetPlayerPed(player)
-        local identifier = Functions[coreName].GetIdentifier(player)
-		local coords = GetEntityCoords(ped)
-		local name = GetPlayerName(player)
+	local players = getAllPlayers()
 
-		blips[player] = {player, NetworkGetNetworkIdFromEntity(ped), identifier, name, vector3(coords.x, coords.y, coords.z)}
+	for i=1, #players do
+		local data = getPlayerData(players[i])
+		blips[players[i].source] = data
 	end
 	
 	return blips
@@ -374,7 +331,7 @@ exports('getCrew', function(identifier)
 end)
 
 exports('ownsCrew', function(netId)
-    local identifier = Functions[coreName].GetIdentifier(netId)
+    local identifier = getIdentifier(netId)
 
     if crews[crewByIdentifier[identifier]] then
         return true
@@ -392,7 +349,7 @@ exports('ownsCrew2', function(identifier)
 end)
 
 exports('isInCrew', function(netId)
-	local identifier = Functions[coreName].GetIdentifier(netId)
+	local identifier = getIdentifier(netId)
 		
 	for k,v in pairs(crews) do
 		if v.data[identifier] then
@@ -461,12 +418,14 @@ end)
 exports('getCrewMembers', function(netId)
     local list = {}
 
-    local identifier = Functions[coreName].GetIdentifier(netId)
+    local identifier = getIdentifier(netId)
     for k,v in pairs(crews) do
         if v.data[identifier] then
             for target, _ in pairs(v.data) do
-                local player = Functions[coreName].GetPlayerFromIdentifier(target)
-                table.insert(list, player.source)
+                local player = getPlayerFromIdentifier(target)
+				if player and player ~= nil then
+                	table.insert(list, player.source)
+				end
             end
             return list
         end

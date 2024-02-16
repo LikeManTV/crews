@@ -34,6 +34,19 @@ util = {
                 end
             end
         end
+    end,
+
+    getMemberCount = function()
+        if crew then
+            local count = 0
+            for i=1, #crew.data do
+                count = count + 1
+            end
+
+            return count
+        end
+
+        return 0
     end
 }
 
@@ -43,7 +56,7 @@ crewMenu = {
         if crew then
             table.insert(elements,{
                 title = crew.label,
-                description = _L('main_menu_desc', {crew.tag, getMemberCount()}),
+                description = _L('main_menu_desc', {crew.tag, util.getMemberCount()}),
                 onSelect = function()
                     lib.hideContext(onExit)
                     crewMenu.openMemberList()

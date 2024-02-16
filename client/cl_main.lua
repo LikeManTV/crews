@@ -1,4 +1,3 @@
-core, coreName = nil, nil
 crew = nil
 invites = nil
 crewNames, crewTags = {}, {}
@@ -9,50 +8,6 @@ showTags = true
 pvp = false
 
 ----------------------------------------------------------------
-
-if GetResourceState('es_extended') == 'started' then
-    core = exports["es_extended"]:getSharedObject()
-    coreName = 'esx'
-
-    CreateThread(function()
-        while core.GetPlayerData().identifier == nil do
-            Wait(10)
-        end
-    
-        core.PlayerData = core.GetPlayerData()
-    end)
-elseif GetResourceState('qb-core') == 'started' then
-    core = exports['qb-core']:GetCoreObject()
-    coreName = 'qb'
-elseif GetResourceState('ox_core') == 'started' then
-    print('Detected ox_core which is not yet supported.')
-    return
-else
-    print('Framework is missing, script will not work..')
-    return
-end
-
-RegisterNetEvent('esx:playerLoaded')
-AddEventHandler('esx:playerLoaded',function(xPlayer, isNew, skin)
-    CreateThread(function()
-        while core.GetPlayerData().identifier == nil do
-            Wait(10)
-        end
-    
-        core.PlayerData = core.GetPlayerData()
-    end)
-
-    myIdentifier = core.PlayerData.identifier
-    TriggerServerEvent('crews:getCrew')
-    startLoop()
-end)
-
-RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
-    local playerData = core.Functions.GetPlayer(source)
-    myIdentifier = playerData.citizenid
-    TriggerServerEvent('crews:getCrew')
-    startLoop()
-end)
 
 if type(CONFIG.CREW_SETTINGS.COMMAND) == 'string' then
     RegisterCommand(CONFIG.CREW_SETTINGS.COMMAND, function()
@@ -66,20 +21,14 @@ end
 
 -- EVENTS ------------------------------------------------------
 
---AddEventHandler('onResourceStart', function(resourceName)
---    if (GetCurrentResourceName() ~= resourceName) then
---      return
---    end
---
---    if coreName == 'esx' then
---        myIdentifier = core.PlayerData.identifier
---    elseif coreName == 'qb' then
---        local playerData = core.Functions.GetPlayer(source)
---        myIdentifier = playerData.citizenid
---    end
+-- AddEventHandler('onResourceStart', function(resourceName)
+--     if (GetCurrentResourceName() ~= resourceName) then
+--         return
+--     end
+
 --    TriggerServerEvent('crews:getCrew')
 --    startLoop()
---end)
+-- end)
 
 RegisterNetEvent('crews:openMainMenu', function()
     crewMenu.openMainMenu()
@@ -87,10 +36,6 @@ end)
 
 RegisterNetEvent('crews:setCrew', function(newCrew)
     crew = newCrew
-
-    showTags = false
-    util.deleteTag(k)
-    showTags = true
 end)
 
 RegisterNetEvent('crews:setInvites', function(newInvites)
@@ -149,20 +94,20 @@ end)
 -- Blips & Tags
 function startLoop()
     CreateThread(function()
-        while true do
+        while myIdentifier ~= nil do
             Wait(1000)
             if crew then
                 for k,v in pairs(crew.data) do
                     local players = lib.callback.await('crews:blipUpdate', false)
                     if players then
-                        for index, obj in pairs(players) do
+                        for _, obj in pairs(players) do
                             local blipPlayer = obj[1]
                             local playerPed = NetworkDoesEntityExistWithNetworkId(obj[2]) and NetworkGetEntityFromNetworkId(obj[2]) or nil
                             local ident = obj[3]
                             local name = obj[4]
                             local coords = obj[5]
-                            if name ~= GetPlayerName(GetPlayerIndex()) then
-                                if k == ident then
+                            if k == ident then
+                                if name ~= GetPlayerName(source) then
                                     if #(coords.xyz - GetEntityCoords(PlayerPedId()).xyz) < 100.0 then
                                         if crewBlipsNear[k] == nil then
                                             if crewBlipsFar[k] then
@@ -229,6 +174,7 @@ function startLoop()
         end
     end)
 end
+
 AddTextEntry("BLIP_OTHPLYR", 'CREW')
 
 -- EXPORTS ------------------------------------------------------
