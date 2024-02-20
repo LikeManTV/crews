@@ -5,7 +5,7 @@ lua54 'yes'
 author 'LikeManTV'
 name 'crews'
 description 'Crew System'
-version '2.0.0'
+version '2.0.2'
 
 shared_scripts {
     '@ox_lib/init.lua',
