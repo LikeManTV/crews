@@ -1,8 +1,9 @@
 # CREWS
 [![GitHub release](https://img.shields.io/github/v/release/LikeManTV/crews.svg)](https://github.com/LikeManTV/crews/releases/latest)
 [![GitHub license](https://img.shields.io/github/license/LikeManTV/crews.svg)](LICENSE)
-<a href="https://discordapp.com/invite/55aQNKzQVW" title="Chat on Discord"><img alt="Discord Status" src="https://discordapp.com/api/guilds/912329245789933569/widget.png"></a>   
-A crew system for FiveM.
+<a href="https://discordapp.com/invite/55aQNKzQVW" title="Chat on Discord"><img alt="Discord Status" src="https://discordapp.com/api/guilds/912329245789933569/widget.png"></a>
+
+The crew system facilitates seamless coordination and management of team members within the game. It offers players a structured approach to assemble and organize their crew, ensuring efficient teamwork and collaboration. With the crew system, players can easily recruit, assign roles, and communicate with their crew members, enhancing their strategic gameplay experience.
 
 Please report any problems by creating a new issue or join the Discord server.
 Also feel free to make a PR.
