@@ -8,7 +8,7 @@ The crew system facilitates seamless coordination and management of team members
 Please report any problems by creating a new issue or join the Discord server.
 Also feel free to make a PR.
 
-## Features
+## 🔥 Features
 - Supports ESX, QB & OX
 - Crew menu
 - Crew tag & name
@@ -23,11 +23,11 @@ Also feel free to make a PR.
 - Nametags above head (/crewTags to hide)
   - Player's health
 
-## Dependencies
+## 🛠️ Dependencies
 - [oxmysql](https://github.com/overextended/oxmysql)
 - [ox_lib](https://github.com/overextended/ox_lib)
 
-## Installation
+## 📲 Installation
 1. Download latest release or source code
 2. Extract the .zip file
 3. Copy the folder to your server resources folder
@@ -41,13 +41,13 @@ Also feel free to make a PR.
 ## Known issues
 - Random blip duplication
 
-## Exports (client)
+## 📝 Exports (client)
 - `getCrew()` - returns table with crew data
 - `ownsCrew()` - returns true if player owns a crew
 - `isInCrew()` - returns true if player is in crew
 - `getCrewOwner()` - returns the identifier of your current crew owner
 
-## Exports (server)
+## 📝 Exports (server)
 - `ownsCrew(netId)` - returns true if player owns a crew
 - `ownsCrew2(identifier)` - returns true if player owns a crew
 - `isInCrew(netId)` - returns true if player is in a crew
