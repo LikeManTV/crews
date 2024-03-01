@@ -314,7 +314,7 @@ lib.callback.register('crews:blipUpdate', function(source)
 
 	for i=1, #players do
 		local data = getPlayerData(players[i])
-		blips[players[i].source] = data
+		blips[data.src] = data
 	end
 	
 	return blips
