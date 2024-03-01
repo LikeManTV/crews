@@ -1,6 +1,8 @@
 Language['en'] = {
     keybind_desc = 'Open crew menu',
     toggle_tags = 'Crew tags are now %s!',
+    tags_enabled = 'shown',
+    tags_disabled = 'hidden',
 
     -- MAIN MENU
     main_menu_title = 'CREW MENU',
