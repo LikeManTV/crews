@@ -88,7 +88,7 @@ end)
 
 RegisterCommand('crewTags', function()
     showTags = not showTags
-    notify(_L('toggle_tags', {showTags and 'shown' or 'hidden'}), 'inform')
+    notify(_L('toggle_tags', {showTags and _L('tags_enabled') or _L('tags_disabled')}), 'inform')
 end)
 
 -- Blips & Tags
