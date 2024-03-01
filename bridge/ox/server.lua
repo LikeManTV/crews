@@ -28,5 +28,5 @@ function getAllPlayers()
 end
 
 function getPlayerData(player)
-    return {ped = GetPlayerPed(player.source), identifier = player.charId, coords = player.getCoords(), name = player.name}
+    return {src = player.source, ped = GetPlayerPed(player.source), identifier = player.charId, coords = player.getCoords(), name = player.name}
 end
