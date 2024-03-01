@@ -10,3 +10,11 @@ function getPlayerFromIdentifier(identifier)
     local player = QBCore.Functions.GetPlayerByCitizenId(identifier)
     return player.PlayerData
 end
+
+function getAllPlayers()
+    return QBCore.Functions.GetQBPlayers()
+end
+
+function getPlayerData(player)
+    return {ped = GetPlayerPed(player.source), identifier = player.citizenid, coords = player.getCoords(), name = player.firstname .. ' ' .. player.lastname}
+end
