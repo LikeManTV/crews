@@ -16,5 +16,5 @@ function getAllPlayers()
 end
 
 function getPlayerData(player)
-    return {ped = GetPlayerPed(player.PlayerData.source), identifier = player.PlayerData.citizenid, coords = player.getCoords(), name = player.PlayerData.firstname .. ' ' .. player.PlayerData.lastname}
+    return {src = player.PlayerData.source, ped = GetPlayerPed(player.PlayerData.source), identifier = player.PlayerData.citizenid, coords = player.getCoords(), name = player.PlayerData.firstname .. ' ' .. player.PlayerData.lastname}
 end
