@@ -1,6 +1,8 @@
 Language['pt'] = {
     keybind_desc = 'Abrir menu de Equipe',
     toggle_tags = 'Tag alterada para %s!',
+    tags_enabled = 'mostrar',
+    tags_disabled = 'não mostrar',
 
     -- MAIN MENU
     main_menu_title = 'MENU DE CLÃ',
