@@ -5,7 +5,7 @@
 
 The crew system facilitates seamless coordination and management of team members within the game. It offers players a structured approach to assemble and organize their crew, ensuring efficient teamwork and collaboration. With the crew system, players can easily recruit, assign roles, and communicate with their crew members, enhancing their strategic gameplay experience.
 
-Please report any problems by creating a new issue or join the Discord server.
+Please report any problems by creating a new issue or join the Discord server.<br/>
 Also feel free to make a PR.
 
 ## 🔥 Features
