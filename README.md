@@ -14,14 +14,14 @@ Also feel free to make a PR.
 - Crew tag & name
 - Player invitation
 - Member management
-  - Ranks & permissions (WIP)
-  - Crew ownership transfer (WIP)
+  - Ranks & permissions
+  - Crew ownership transfer
 - Settings
   - Rename crew
   - Change tag
 - Blips between members
 - Nametags above head (/crewTags to hide)
-  - Player's health
+  - Displays player's health
 
 ## 🛠️ Dependencies
 - [oxmysql](https://github.com/overextended/oxmysql)
@@ -38,23 +38,27 @@ Also feel free to make a PR.
 `OPTIONAL` - If you want to have permissions compatible with HRS scripts.
 - Follow the tutorial in `SETUP/HRS-INTEGRATION.txt`
 
-## Known issues
-- Random blip duplication
+## ⏰ Planned Features
+- Crew level/point system & leaderboard.
+- In-game rank editor.
+- UI displaying active crew members.
 
 ## 📝 Exports (client)
-- `getCrew()` - returns table with crew data
 - `ownsCrew()` - returns true if player owns a crew
 - `isInCrew()` - returns true if player is in crew
-- `getCrewOwner()` - returns the identifier of your current crew owner
+- `getCrew()` - returns crew data
+- `getCrewOwner()` - returns the identifier of the current crew owner
+- `getCrewName()` - returns crew name
+- `getCrewTag()` - returns crew tag
 
 ## 📝 Exports (server)
 - `ownsCrew(netId)` - returns true if player owns a crew
-- `ownsCrew2(identifier)` - returns true if player owns a crew
 - `isInCrew(netId)` - returns true if player is in a crew
-- `isInCrew2(identifier)` - returns true if player is in a crew
 - `isInPlayersCrew(owner, player)` - returns true if player is in other player's crew (uses identifiers)
-- `getCrewName(netId)` - returns crew name of players crew
-- `getCrewTag(netId)` - returns crew tag of players crew
-- `getCrewMembers(netId)` - returns table containing server IDs of all members
+- `getCrew(identifier)` - returns crew data of players crew
+- `getCrewOwner(identifier)` - returns owner of players crew
+- `getCrewName(identifier)` - returns crew name of players crew
+- `getCrewTag(identifier)` - returns crew tag of players crew
+- `getCrewMembers(identifier)` - returns table containing server IDs of all members
 
 Credits: Vallorz, HRS
