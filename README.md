@@ -39,6 +39,7 @@ Also feel free to make a PR.
 - Follow the tutorial in `SETUP/HRS-INTEGRATION.txt`
 
 ## ⏰ Planned Features
+- Bridge system for custom menu integrations.
 - Crew level/point system & leaderboard.
 - In-game rank editor.
 - UI displaying active crew members.
