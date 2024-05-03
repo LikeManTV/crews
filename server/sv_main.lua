@@ -1,311 +1,392 @@
 crews, invites = {}, {}
 crewNames, crewTags = {}, {}
 crewByIdentifier = {}
-onlineIdentifiers = {}
+onlinePlayers = {}
 
 ----------------------------------------------------------------
 
 CreateThread(function()
-    MySQL.Async.fetchAll("SELECT * FROM crews", {}, function(result)		
-		for k,v in ipairs(result) do
-			crews[v.owner] = {data = json.decode(v.data), label = v.label, tag = v.tag, owner = v.owner}
-			table.insert(crewNames, v.label)
-			table.insert(crewTags, v.tag)
-			for k2,v2 in pairs(crews[v.owner].data) do
-				crewByIdentifier[k2] = v.owner
-			end
-		end
+    MySQL.query('SELECT * FROM crews', {}, function(result)
+        if result then
+            for i=1, #result do
+                local row = result[i]
+                local success, decodedData = pcall(json.decode, row.data)
+                if success then
+                    if decodedData then
+                        crews[tonumber(row.owner)] = {owner = tonumber(row.owner), label = row.label, tag = row.tag, data = decodedData}
+                        crewNames[row.owner] = row.label
+                        crewTags[row.owner] = row.tag
+                        for k,_ in pairs(decodedData) do
+                            crewByIdentifier[tonumber(k)] = tonumber(row.owner)
+                        end
+                    else
+                        error("Decoded data is nil for JSON:", row.data)
+                    end
+                else
+                    error("Error decoding JSON:", decodedData)
+                    print("Problematic JSON string:", row.data)
+                end
+            end
+        end
 	end)
 end)
 
--- EVENTS ------------------------------------------------------
+----------------------------------------------------------------
+
+local function checkCrewLimit(identifier)
+	if CONFIG.MAX_CREW_MEMBERS then
+		local count = 0
+		for _,_ in pairs(crews[identifier].data) do
+			count = count + 1
+		end
+
+        if count >= CONFIG.MAX_CREW_MEMBERS then
+            return true
+        end
+
+        return false
+	end
+end
 
 AddEventHandler('playerDropped', function(reason)
 	local source = source
 	local identifier = getIdentifier(source)
 
-	for k,v in pairs(onlineIdentifiers) do
-		if v == source then
-			onlineIdentifiers[k] = nil
-			break
-		end
-	end
+    if identifier and crewByIdentifier[identifier] then
+        if onlinePlayers[identifier] then
+            onlinePlayers[identifier] = nil
+        end
 
-	TriggerClientEvent("crews:removePlayer", -1, crewByIdentifier[identifier], identifier)
+        for k,_ in pairs(crews[crewByIdentifier[identifier]].data) do
+			if onlinePlayers[tonumber(k)] then
+                TriggerClientEvent('crews:removePlayer', onlinePlayers[tonumber(k)], identifier)
+			end
+		end
+    end
 end)
 
 RegisterServerEvent('crews:getCrew', function(identifier)
     local source = source
 
-	onlineIdentifiers[identifier] = source
+    if identifier then
+        onlinePlayers[identifier] = source
 
-	local sendCrew = nil
-	if crewByIdentifier[identifier] then
-		sendCrew = crews[crewByIdentifier[identifier]]
-	end
-
-	TriggerClientEvent('crews:setCrew', source, sendCrew)
-	TriggerClientEvent('crews:setInvites', source, invites[identifier])
-	TriggerClientEvent('crews:setNames', source, crewNames)
-	TriggerClientEvent('crews:setTags', source, crewTags)
-end)
-
-RegisterServerEvent('crews:getNames', function()
-	local source = source
-	TriggerClientEvent('crews:setNames', source, crewNames)
-end)
-
-RegisterServerEvent('crews:getTags', function()
-	local source = source
-	TriggerClientEvent('crews:setTags', source, crewTags)
+        if crewByIdentifier[identifier] then
+            TriggerClientEvent('crews:setCrew', source, crews[crewByIdentifier[identifier]], invites[identifier], crewNames, crewTags)
+        end
+    end
 end)
 
 RegisterServerEvent('crews:createCrew', function(label, tag)
-	local source = source
+    local source = source
 	local identifier = getIdentifier(source)
 	local name = GetPlayerName(source)
 
-	if label then
-		label = ("%s Crew"):format(label)
-	else
-		label = ("%s's Crew"):format(name)
-	end
+    if identifier then
+        if label then
+            label = ("%s Crew"):format(label)
+        else
+            label = ("%s's Crew"):format(name)
+        end
 
-	if not crews[identifier] and not crewByIdentifier[identifier] then
-		crews[identifier] = {
-			owner = identifier,
-			label = label,
-			tag = tag,
-			data = {
-				[identifier] = name
-			}
-		}
+        if not crews[identifier] and not crewByIdentifier[identifier] then
+            local newCrew = {
+                owner = identifier,
+                label = label,
+                tag = tag,
+                data = {}
+            }
 
-		crewByIdentifier[identifier] = identifier
+            newCrew.data[tostring(identifier)] = {Name = name, Rank = 'owner'}
+            local success, encodedData = pcall(json.encode, newCrew.data)
+            
+            if success then
+                if encodedData then
+                    crews[identifier] = newCrew
+                    crewByIdentifier[identifier] = identifier
+                    crewNames[identifier] = label
+                    crewTags[identifier] = tag
 
-		TriggerClientEvent('crews:setCrew', source, crews[identifier])
-        TriggerClientEvent('crews:notify', source, _L('create_success', {label}), 'success')
-
-		MySQL.Async.execute('INSERT INTO crews (owner, label, tag, data) VALUES (@owner, @label, @tag, @data)',
-		{
-			['@owner'] = identifier,
-			['@label'] = label,
-			['@tag'] = tag,
-			['@data'] = json.encode(crews[identifier].data)
-		})
-
-		TriggerClientEvent('crews:setNames', source, crewNames)
-		TriggerClientEvent('crews:setTags', source, crewTags)
-	end
+                    MySQL.insert('INSERT INTO `crews` (owner, label, tag, data) VALUES (?, ?, ?, ?)', {
+                        identifier, label, tag, encodedData
+                    }, function(id)
+                        TriggerClientEvent('crews:setCrew', source, newCrew, invites[identifier], crewNames, crewTags)
+                        TriggerClientEvent('crews:updateNames', -1, crewNames)
+                        TriggerClientEvent('crews:updateTags', -1, crewTags)
+                        TriggerClientEvent('crews:notify', source, _L('create_success', {label}), 'success')
+                    end)
+                else
+                    error("Encoded data is nil for table:", newCrew.data)
+                end
+            else
+                error("Error encoding table:", encodedData)
+                print("Problematic table:", newCrew.data)
+            end
+        end
+    end
 end)
 
 RegisterServerEvent('crews:deleteCrew', function()
 	local source = source
 	local identifier = getIdentifier(source)
 
-	if crews[identifier] then
-		for k, v in pairs(crews[identifier].data) do
-			crewByIdentifier[k] = nil
-			if onlineIdentifiers[k] then
-				TriggerClientEvent('crews:setCrew', onlineIdentifiers[k], nil)
-				TriggerClientEvent('crews:setNames', source, crewNames)
-				TriggerClientEvent('crews:setTags', source, crewTags)
-			end
-		end
+    if identifier and crewByIdentifier[identifier] and crews[identifier] then
+        for k,v in ipairs(crewNames) do
+            if v == crews[identifier].label then
+                table.remove(crewNames, k)
+            end
+        end
+        for k,v in ipairs(crewTags) do
+            if v == crews[identifier].tag then
+                table.remove(crewTags, k)
+            end
+        end
 
-        TriggerClientEvent('crews:notify', source, _L('delete_success', {crews[identifier].label}), 'success')
+        for k, _ in pairs(crews[identifier].data) do
+            crewByIdentifier[tonumber(k)] = nil
+            if onlinePlayers[tonumber(k)] then
+                TriggerClientEvent('crews:setCrew', onlinePlayers[tonumber(k)], nil, invites[tonumber(k)], crewNames, crewTags)
+            end
+        end
 
-		crews[identifier] = nil
+        local success = MySQL.update.await('DELETE FROM crews WHERE owner', {identifier})
+        if success then
+            TriggerClientEvent('crews:notify', source, _L('delete_success', {crews[identifier].label}), 'success')
+        end
 
-		MySQL.Async.execute('DELETE FROM crews WHERE owner = @owner', {
-			['@owner'] = identifier
-		})
-	end
+        crews[identifier] = nil
+    end
 end)
 
-RegisterServerEvent('crews:addToCrew', function(id)
+RegisterServerEvent('crews:addToCrew', function(target)
 	local source = source
-	local target = id
 	local identifier = getIdentifier(source)
-    local yidentifier = getIdentifier(target)
+    local targetIdentifier = getIdentifier(target)
 
-	if crewByIdentifier[yidentifier] then
-        TriggerClientEvent('crews:notify', source, _L('error_player_in_crew'), 'error')
-	else
-		if crews[identifier] then
-			local limit = false
-			if CONFIG.CREW_SETTINGS.MAX_CREW_MEMBERS then
-				local count = 0
-				for k,v in pairs(crews[identifier].data) do
-					count = count + 1
-					if count >= CONFIG.CREW_SETTINGS.MAX_CREW_MEMBERS then
-						limit = true
-						break
-					end
-				end
-			end
+    if identifier and targetIdentifier then
+        if crewByIdentifier[targetIdentifier] then
+            TriggerClientEvent('crews:notify', source, _L('error_player_in_crew'), 'error')
+        else
+            if crews[crewByIdentifier[identifier]] then
+                local limit = checkCrewLimit(crewByIdentifier[identifier])
 
-			if limit then
-                TriggerClientEvent('crews:notify', source, _L('error_limit_reached', {CONFIG.CREW_SETTINGS.MAX_CREW_MEMBERS}), 'error')
-			else
-				if not invites[yidentifier] then invites[yidentifier] = {} end
-
-				if not invites[yidentifier][identifier] then
-					invites[yidentifier][identifier] = crews[identifier].label
-					
-					TriggerClientEvent('crews:setInvites', target, invites[yidentifier])
-                    TriggerClientEvent('crews:notify', target, _L('invites_received_new'), 'inform')
-                    TriggerClientEvent('crews:notify', source, _L('invite_success', {GetPlayerName(target)}), 'success')
-				else
-                    TriggerClientEvent('crews:notify', source, _L('error_already_invited'), 'error')
-				end
-			end
-		else
-            TriggerClientEvent('crews:notify', source, _L('error_no_crew'), 'error')
-		end
-	end
+                if limit then
+                    TriggerClientEvent('crews:notify', source, _L('error_limit_reached', {CONFIG.MAX_CREW_MEMBERS}), 'error')
+                else
+                    if not invites[targetIdentifier] then invites[targetIdentifier] = {} end
+    
+                    if not invites[targetIdentifier][crewByIdentifier[identifier]] then
+                        invites[targetIdentifier][crewByIdentifier[identifier]] = crews[crewByIdentifier[identifier]].label
+                        
+                        TriggerClientEvent('crews:updateInvites', target, invites[targetIdentifier])
+                        TriggerClientEvent('crews:notify', target, _L('invites_received_new'), 'inform')
+                        TriggerClientEvent('crews:notify', source, _L('invite_success', {GetPlayerName(target)}), 'success')
+                    else
+                        TriggerClientEvent('crews:notify', source, _L('error_already_invited'), 'error')
+                    end
+                end
+            else
+                TriggerClientEvent('crews:notify', source, _L('error_no_crew'), 'error')
+            end
+        end
+    end
 end)
 
-RegisterServerEvent('crews:acceptCrew', function(ident)
-	local source = source
-	local identifier = getIdentifier(source)
+RegisterServerEvent('crews:joinCrew', function(crewOwner)
+    local source = source
+    local identifier = getIdentifier(source)
 
-	if invites[identifier] and invites[identifier][ident] and crews[ident] then
+    if identifier and invites[identifier] and invites[identifier][crewOwner] and crews[crewOwner] then
+        local limit = checkCrewLimit(crewOwner)
 
-		local limit = false
-		if CONFIG.CREW_SETTINGS.MAX_CREW_MEMBERS then
-			local count = 0
-			for k,v in pairs(crews[ident].data) do
-				count = count + 1
-				if count >= CONFIG.CREW_SETTINGS.MAX_CREW_MEMBERS then
-					limit = true
-					break
-				end
-			end
-		end
+        if limit then
+            TriggerClientEvent('crews:notify', source, _L('error_limit_reached', {CONFIG.MAX_CREW_MEMBERS}), 'error')
+        else
+            crews[crewOwner].data[identifier] = {Name = GetPlayerName(source), Rank = 'member'}
+            crewByIdentifier[identifier] = crewOwner
 
-		if limit then
-            TriggerClientEvent('crews:notify', source, _L('error_limit_reached', {CONFIG.CREW_SETTINGS.MAX_CREW_MEMBERS}), 'error')
-		else
-			crews[ident].data[identifier] = GetPlayerName(source)
-			crewByIdentifier[identifier] = ident
-			
-			for k, v in pairs(crews[ident].data) do
-				if onlineIdentifiers[k] then
-					TriggerClientEvent('crews:setCrew', onlineIdentifiers[k], crews[ident])
-				end
-			end
+            for k, _ in pairs(crews[crewOwner].data) do
+                if onlinePlayers[tonumber(k)] then
+                    TriggerClientEvent('crews:updateCrew', onlinePlayers[tonumber(k)], crews[crewOwner])
+                end
+            end
 
-			invites[identifier] = nil
+            invites[identifier] = nil
+            TriggerClientEvent('crews:setInvites', onlinePlayers[identifier], nil)
 
-			TriggerClientEvent('crews:setInvites', onlineIdentifiers[identifier], nil)
-            TriggerClientEvent('crews:notify', source, _L('invites_success', {crews[ident].label}), 'success')
-			
-			MySQL.Async.execute('UPDATE crews SET data = @data WHERE owner = @owner', {
-				['@data'] = json.encode(crews[ident].data),
-				['@owner'] = ident
-			})
-		end
-	end
+            local success = MySQL.update.await('UPDATE crews SET data = ? WHERE owner = ?', {json.encode(crews[crewOwner].data), crewOwner})
+            if success then
+                TriggerClientEvent('crews:notify', source, _L('invites_success', {crews[crewOwner].label}), 'success')
+            end
+        end
+    end
 end)
 
 RegisterServerEvent('crews:leaveCrew', function()
 	local source = source
 	local identifier = getIdentifier(source)
 
-	if crewByIdentifier[identifier] and crews[crewByIdentifier[identifier]] then
-		local ident = crewByIdentifier[identifier]
+    if identifier and crewByIdentifier[identifier] and crews[crewByIdentifier[identifier]] then
+		local crewOwner = crewByIdentifier[identifier]
 
-		crews[ident].data[identifier] = nil
+		crews[crewOwner].data[tostring(identifier)] = nil
 		crewByIdentifier[identifier] = nil
 		
-		TriggerClientEvent('crews:removePlayer', -1, ident, identifier)
-		TriggerClientEvent('crews:playerLeft', source, ident)
-		TriggerClientEvent('crews:setCrew', source, nil)
+		TriggerClientEvent('crews:playerLeft', source, crewOwner)
+		TriggerClientEvent('crews:updateCrew', source, nil)
 
-		for k, v in pairs(crews[ident].data) do
-			if onlineIdentifiers[k] then
-				TriggerClientEvent('crews:setCrew', onlineIdentifiers[k], crews[ident])
+		for k, _ in pairs(crews[crewOwner].data) do
+			if onlinePlayers[tonumber(k)] then
+				TriggerClientEvent('crews:updateCrew', onlinePlayers[tonumber(k)], crews[crewOwner])
+                TriggerClientEvent('crews:removePlayer', onlinePlayers[tonumber(k)], identifier)
 			end
 		end
 
-		MySQL.Async.execute('UPDATE crews SET data = @data WHERE owner = @owner', {
-			['@data'] = json.encode(crews[ident].data),
-			['@owner'] = ident
-		})
-	end
+        local success = MySQL.update.await('UPDATE crews SET data = ? WHERE owner = ?', {json.encode(crews[crewOwner].data), crewOwner})
+        if success then
+            TriggerClientEvent('crews:notify', source, _L('leave_success'), 'success')
+        end
+    end
 end)
 
-RegisterServerEvent('crews:removeFromCrew', function(yidentifier)
+RegisterServerEvent('crews:removeFromCrew', function(targetIdentifier)
 	local source = source
 	local identifier = getIdentifier(source)
-    local target = getPlayerFromIdentifier(yidentifier)
-	if target == nil then return end
+    local target = getPlayerFromIdentifier(targetIdentifier)
 
-	if crews[identifier] and yidentifier ~= identifier then
-		crews[identifier].data[yidentifier] = nil
-		crewByIdentifier[yidentifier] = nil
+    if identifier and targetIdentifier and target then
+        if crewByIdentifier[identifier] and crews[crewByIdentifier[identifier]] and targetIdentifier ~= identifier then
+            crews[crewByIdentifier[identifier]].data[tostring(targetIdentifier)] = nil
+            crewByIdentifier[targetIdentifier] = nil
+    
+            TriggerClientEvent('crews:playerLeft', target.source, identifier)
+    
+            if onlinePlayers[targetIdentifier] then
+                TriggerClientEvent('crews:updateCrew', onlinePlayers[targetIdentifier], nil)
+                TriggerClientEvent('crews:notify', target.source, _L('player_kicked'), 'inform')
+            end
+    
+            for k, _ in pairs(crews[crewByIdentifier[identifier]].data) do
+                if onlinePlayers[tonumber(k)] then
+                    TriggerClientEvent('crews:updateCrew', onlinePlayers[tonumber(k)], crews[crewByIdentifier[identifier]])
+                    TriggerClientEvent('crews:removePlayer', onlinePlayers[tonumber(k)], targetIdentifier)
+                end
+            end
 
-		TriggerClientEvent('crews:removePlayer', -1, identifier, yidentifier)
-		if target then
-			TriggerClientEvent('crews:playerLeft', target.source, identifier)
-		end
-
-		if onlineIdentifiers[yidentifier] then
-			TriggerClientEvent('crews:setCrew', onlineIdentifiers[yidentifier], nil)
-		end
-
-		for k, v in pairs(crews[identifier].data) do
-			if onlineIdentifiers[k] then
-				TriggerClientEvent('crews:setCrew', onlineIdentifiers[k], crews[identifier])
-			end
-		end
-
-		if onlineIdentifiers[yidentifier] then
-            TriggerClientEvent('crews:notify', target.source, _L('player_kicked'), 'inform')
-		end
-
-		MySQL.Async.execute('UPDATE crews SET data = @data WHERE owner = @owner', {
-			['@data'] = json.encode(crews[identifier].data),
-			['@owner'] = identifier
-		})
-	end
+            local success = MySQL.update.await('UPDATE crews SET data = ? WHERE owner = ?', {json.encode(crews[identifier].data), crewByIdentifier[identifier]})
+            if success then
+                TriggerClientEvent('crews:notify', target.source, _L('player_kicked'), 'inform')
+            end
+        end
+    end
 end)
 
-RegisterServerEvent('crews:rename', function(newName)
+RegisterServerEvent('crews:changeRank', function(targetIdentifier, rankData)
+    local source = source
+    local identifier = getIdentifier(source)
+    local target = getPlayerFromIdentifier(targetIdentifier)
+
+    if targetIdentifier and crewByIdentifier[identifier] and crews[crewByIdentifier[identifier]] then
+        crews[crewByIdentifier[identifier]].data[tostring(targetIdentifier)].Rank = rankData.name
+
+        for k, _ in pairs(crews[crewByIdentifier[identifier]].data) do
+            if onlinePlayers[tonumber(k)] then
+                TriggerClientEvent('crews:updateCrew', onlinePlayers[tonumber(k)], crews[identifier])
+            end
+        end
+
+        local success = MySQL.update.await('UPDATE crews SET data = ? WHERE owner = ?', {json.encode(crews[crewByIdentifier[identifier]].data), crewByIdentifier[identifier]})
+        if success then
+            TriggerClientEvent('crews:notify', target.source, _L('player_rank_changed', {rankData.label}), 'inform')
+        end
+    else
+        print('Changing rank failed.')
+    end
+end)
+
+RegisterServerEvent('crews:transferOwnership', function(targetIdentifier)
+    local source = source
+    local identifier = getIdentifier(source)
+    local target = getPlayerFromIdentifier(targetIdentifier)
+
+    if targetIdentifier then
+        if crews[identifier] and crewByIdentifier[targetIdentifier] then
+            local currentCrew = crews[identifier]
+            currentCrew.owner = targetIdentifier
+            currentCrew.data[tostring(targetIdentifier)].Rank = 'owner'
+            currentCrew.data[tostring(identifier)].Rank = 'member'
+            crews[identifier] = nil
+            crews[targetIdentifier] = currentCrew
+
+            for k, _ in pairs(currentCrew.data) do
+                if onlinePlayers[tonumber(k)] then
+                    TriggerClientEvent('crews:updateCrew', onlinePlayers[tonumber(k)], currentCrew)
+                end
+            end
+
+            local success = MySQL.update.await('UPDATE crews SET owner = ?, data = ? WHERE owner = ?', {targetIdentifier, json.encode(currentCrew.data), identifier})
+            if success then
+                TriggerClientEvent('crews:notify', target.source, _L('player_crew_transfered'), 'inform')
+            end
+        end
+    end
+end)
+
+RegisterServerEvent('crews:renameCrew', function(newName)
 	local source = source
 	local identifier = getIdentifier(source)
 
-	if newName then
-		crews[identifier].label = newName..' Crew'
-        TriggerClientEvent('crews:notify', source, _L('rename_success', {newName}), 'success')
-	else
-		crews[identifier].label = GetPlayerName(source)..' Crew'
-	end
+    if identifier and crewByIdentifier[identifier] and crews[crewByIdentifier[identifier]] then
+        if newName then
+            local formattedName = newName..' Crew'
+            crews[crewByIdentifier[identifier]].label = formattedName
+            crewNames[crewByIdentifier[identifier]] = formattedName
+        else
+            local formattedName = GetPlayerName(source)..' Crew'
+            crews[crewByIdentifier[identifier]].label = formattedName
+            crewNames[crewByIdentifier[identifier]] = formattedName
+        end
 
-	MySQL.Async.execute('UPDATE crews SET label = @label WHERE owner = @owner', {
-		['@label'] = newName..' Crew',
-		['@owner'] = identifier
-	})
-
-	TriggerClientEvent('crews:setCrew', source, crews[identifier])
-	TriggerClientEvent('crews:setNames', source, crewNames)
+        for k, _ in pairs(crews[crewByIdentifier[identifier]].data) do
+            if onlinePlayers[tonumber(k)] then
+                TriggerClientEvent('crews:updateCrew', onlinePlayers[tonumber(k)], crews[crewByIdentifier[identifier]])
+            end
+        end
+        
+        local success = MySQL.update.await('UPDATE crews SET label = ? WHERE owner = ?', {newName..' Crew', crewByIdentifier[identifier]})
+        if success then
+            TriggerClientEvent('crews:notify', source, _L('rename_success', {newName}), 'success')
+        end
+        
+        TriggerClientEvent('crews:updateNames', -1, crewNames)
+    else
+        print('Crew renaming failed.')
+    end
 end)
 
 RegisterServerEvent('crews:newTag', function(newTag)
 	local source = source
 	local identifier = getIdentifier(source)
 
-	crews[identifier].tag = newTag
-    TriggerClientEvent('crews:notify', source, _L('tag_success', {newTag}), 'success')
+    if identifier and crewByIdentifier[identifier] and crews[crewByIdentifier[identifier]] then
+        crews[crewByIdentifier[identifier]].tag = newTag
+        crewTags[crewByIdentifier[identifier]] = newTag
 
-	MySQL.Async.execute('UPDATE crews SET tag = @tag WHERE owner = @owner', {
-		['@tag'] = newTag,
-		['@owner'] = identifier
-	})
+        for k, _ in pairs(crews[crewByIdentifier[identifier]].data) do
+            if onlinePlayers[tonumber(k)] then
+                TriggerClientEvent('crews:updateCrew', onlinePlayers[tonumber(k)], crews[crewByIdentifier[identifier]])
+            end
+        end
 
-	TriggerClientEvent('crews:setCrew', source, crews[identifier])
-	TriggerClientEvent('crews:setTags', source, crewTags)
+        local success = MySQL.update.await('UPDATE crews SET tag = ? WHERE owner = ?', {newTag, crewByIdentifier[identifier]})
+        if success then
+            TriggerClientEvent('crews:notify', source, _L('tag_success', {newTag}), 'success')
+        end
+
+        TriggerClientEvent('crews:updateTags', -1, crewTags)
+    else
+        print('Crew tag changing failed.')
+    end
 end)
 
 lib.callback.register('crews:blipUpdate', function(source)
@@ -314,122 +395,102 @@ lib.callback.register('crews:blipUpdate', function(source)
 
 	for i=1, #players do
 		local data = getPlayerData(players[i])
-		blips[data.src] = data
+		blips[data.source] = data
 	end
 	
 	return blips
 end)
 
--- EXPORTS ------------------------------------------------------
+----------------------------------------------------------------
 
 exports('getCrew', function(identifier)
-	if crews[crewByIdentifier[identifier]] then
-		return crews[crewByIdentifier[identifier]]
+    if identifier then
+        local crewOwner = crewByIdentifier[identifier]
+        if crewOwner and crews[crewOwner] then
+		    return crews[crewOwner]
+        end
 	end
 
 	return false
 end)
 
-exports('ownsCrew', function(netId)
-    local identifier = getIdentifier(netId)
-
-    if crews[crewByIdentifier[identifier]] then
-        return true
+exports('ownsCrew', function(identifier)
+    if identifier then
+        local crewOwner = crewByIdentifier[identifier]
+        if crewOwner and crews[crewOwner] then
+            return true
+        end
     end
 
     return false
 end)
 
-exports('ownsCrew2', function(identifier)
-    if crews[crewByIdentifier[identifier]] then
+exports('isInCrew', function(identifier)
+    if identifier and crewByIdentifier[identifier] then
         return true
     end
-
-    return false
-end)
-
-exports('isInCrew', function(netId)
-	local identifier = getIdentifier(netId)
-		
-	for k,v in pairs(crews) do
-		if v.data[identifier] then
-			return true
-		end
-	end
-
-    return false
-end)
-
-exports('isInCrew2', function(identifier)
-	for k,v in pairs(crews) do
-		if v.data[identifier] then
-			return true
-		end
-	end
 
     return false
 end)
 
 exports('isInPlayersCrew', function(owner, player)
-	for k,v in pairs(crews) do
-		if k == owner then
-			if v.data[player] then
-				return true
-			end
-		end
-	end
-	return false
-end)
-
-exports('getCrewName', function(netId)
-	for k,v in pairs(crews) do
-		for _, name in pairs(v.data) do
-			if name == GetPlayerName(netId) then
-				return v.label
-			end
-		end
-	end
-
-    return false
-end)
-
-exports('getCrewTag', function(netId)
-	for k,v in pairs(crews) do
-		for _, name in pairs(v.data) do
-			if name == GetPlayerName(netId) then
-				return v.tag
-			end
-		end
-	end
+    if owner and player then
+        if crewByIdentifier[player] == owner then
+            return true
+        end
+    end
 
     return false
 end)
 
 exports('getCrewOwner', function(identifier)
-	for k,v in pairs(crews) do
-		if v.data[identifier] then
-			return k
-		end
-	end
+    if identifier then
+        local crewOwner = crewByIdentifier[identifier]
+        if crewOwner and crews[crewOwner] then
+            return crewOwner
+        end
+    end
 
     return false
 end)
 
-exports('getCrewMembers', function(netId)
-    local list = {}
+exports('getCrewName', function(identifier)
+    if identifier and crewOwner then
+        local crewOwner = crewByIdentifier[identifier]
+        if crewOwner and crews[crewOwner] then
+            return crews[crewOwner].label
+        end
+    end
 
-    local identifier = getIdentifier(netId)
-    for k,v in pairs(crews) do
-        if v.data[identifier] then
-            for target, _ in pairs(v.data) do
+    return false
+end)
+
+exports('getCrewTag', function(identifier)
+    if identifier then
+        local crewOwner = crewByIdentifier[identifier]
+        if crewOwner and crews[crewOwner] then
+            return crews[crewOwner].tag
+        end
+    end
+
+    return false
+end)
+
+exports('getCrewMembers', function(identifier)
+    local list = {}
+    if identifier then
+        local crewOwner = crewByIdentifier[identifier]
+        if crewOwner and crews[crewOwner] then
+            for target, _ in pairs(crews[crewOwner].data) do
                 local player = getPlayerFromIdentifier(target)
-				if player and player ~= nil then
-                	table.insert(list, player.source)
-				end
+                if player and player ~= nil then
+                    table.insert(list, player.source)
+                end
             end
+
             return list
         end
     end
 
-    return nil
+    return 0
 end)

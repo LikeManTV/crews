@@ -10,15 +10,11 @@ function hasPermission(identifier,id)
         return true
     end
 
-	if exports.crews:isInCrew2(identifier) then
+	if exports.crews:isInCrew(identifier) then
 		local crewData = exports.crews:getCrew(identifier)
-		if crewData then
-			for k,v in pairs(crewData) do
-				if crewData.data[identifier] and crewData.data[props[id].identifier] then
-					return true
-				end
-			end
-		end
+        if crewData and crewData.data[identifier] and crewData.data[props[id].identifier] then
+            return true
+        end
 	end
 
     return false
@@ -36,15 +32,11 @@ function hasPermissionVeh(identifier,identifier2)
         return true
     end
 
-	if exports.crews:isInCrew2(identifier) then
+	if exports.crews:isInCrew(identifier) then
 		local crewData = exports.crews:getCrew(identifier)
-		if crewData then
-			for k,v in pairs(crewData) do
-				if crewData.data[identifier] and crewData.data[identifier2] then
-					return true
-				end
-			end
-		end
+        if crewData and crewData.data[identifier] and crewData.data[identifier2] then
+            return true
+        end
 	end
 
     return false
@@ -60,13 +52,9 @@ function hasPermissionVeh(identifier,identifier2)
 
 	if exports.crews:isInCrew() then
 		local crewData = exports.crews:getCrew()
-		if crewData then
-			for k,v in pairs(crewData) do
-				if crewData.data[identifier] and crewData.data[identifier2] then
-					return true
-				end
-			end
-		end
+        if crewData and crewData.data[identifier] and crewData.data[identifier2] then
+            return true
+        end
 	end
 
 	return false

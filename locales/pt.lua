@@ -32,6 +32,11 @@ Language['pt'] = {
     delete_confirmation_desc = 'Tem certeza que deseja deletar o seu clã?',
     delete_success = 'Clã %s deletado com sucesso!',
 
+    -- LEAVING CREW
+    leave_confirmation_title = 'DEIXAR CLÃ',
+    leave_confirmation_desc = 'Tem a certeza de que quer deixar o seu clã atual?',
+    leave_success = 'Deixaste o clã com sucesso.',
+
     -- INVITES
     invites_title = 'CLÃ > CONVITES',
     invites_btn_desc = 'Clique para aceitar.',
@@ -51,12 +56,25 @@ Language['pt'] = {
     member_title = 'MEMBROS > %s',
     member_rank_title = 'ALTERAR CARGO',
     member_rank_desc = 'Cargo: %s',
+    member_rank_input_title = 'Select a rank',
+    member_rank_confirmation_title = 'CHANGE RANK',
+    member_rank_confirmation_desc = 'Are you sure that want to change %s\'s rank to %s?',
+    member_rank_success = 'Successfuly changed %s\'s rank to %s!',
+    player_rank_changed = 'Your rank has been changed to "%s"!',
+    member_crew_transfer_title = 'TRANSFER OWNERSHIP',
+    member_crew_transfer_desc = 'Click to transfer ownership.',
+    member_crew_transfer_confirmation_desc = 'Are you sure that you want to transfer the crew ownership to %s?',
+    member_crew_transfer_success = 'Crew was successfuly transfered to "%s"!',
+    player_crew_transfered = 'The crew\'s ownership was transfered to you.',
     member_kick_title = 'EXPULSAR',
     member_kick_desc = 'Clique para expulsar do clã.',
     member_kick_confirmation_title = 'EXPULSAR PLAYER',
     member_kick_confirmation_desc = 'Você tem certeza que quer expulsar o membro %s?',
     member_kick_success = 'Player explulso com sucesso!',
     player_kicked = 'Você foi expulso do seu clã!',
+
+    member_rank_owner = 'Leader',
+    member_rank_member = 'Member',
 
     -- INVITING PLAYERS
     invite_title = 'CLÃ > CONVIDAR',

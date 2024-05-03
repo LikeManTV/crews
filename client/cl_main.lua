@@ -1,118 +1,106 @@
-crew = nil
-invites = nil
+crew, invites = nil, nil
 crewNames, crewTags = {}, {}
-crewBlipsNear, crewBlipsFar = {}, {}
+crewBlipsNear, crewBlipsFar, currentTags = {}, {}, {}
 
 myIdentifier = nil
-showTags = true
-pvp = false
+
+settings = {
+    showTags = true
+}
 
 ----------------------------------------------------------------
 
-if type(CONFIG.CREW_SETTINGS.COMMAND) == 'string' then
-    RegisterCommand(CONFIG.CREW_SETTINGS.COMMAND, function()
+if CONFIG.COMMAND then
+    RegisterCommand(CONFIG.COMMAND, function()
         crewMenu.openMainMenu()
     end)
+else
+    error('Your CONFIG.COMMAND is not configured properly.')
 end
 
-if CONFIG.CREW_SETTINGS.ENABLE_KEYBIND then
-    RegisterKeyMapping(CONFIG.CREW_SETTINGS.COMMAND, _L('keybind_desc'), 'keyboard', CONFIG.CREW_SETTINGS.OPEN_KEY)
-end
+----------------------------------------------------------------
 
--- EVENTS ------------------------------------------------------
-
--- AddEventHandler('onResourceStart', function(resourceName)
---     if (GetCurrentResourceName() ~= resourceName) then
---         return
---     end
-
---    TriggerServerEvent('crews:getCrew')
---    startLoop()
--- end)
-
-RegisterNetEvent('crews:openMainMenu', function()
-    crewMenu.openMainMenu()
-end)
-
-RegisterNetEvent('crews:setCrew', function(newCrew)
-    crew = newCrew
-end)
-
-RegisterNetEvent('crews:setInvites', function(newInvites)
+RegisterNetEvent('crews:setCrew', function(crewData, newInvites, names, tags)
+    crew = crewData
     invites = newInvites
+    crewNames = names
+    crewTags = tags
 end)
 
-RegisterNetEvent('crews:setNames', function(newNames)
-    crewNames = newNames
+RegisterNetEvent('crews:updateCrew', function(data)
+    crew = data
 end)
 
-RegisterNetEvent('crews:setTags', function(newTags)
-    crewTags = newTags
+RegisterNetEvent('crews:updateInvites', function(data)
+    invites = data
 end)
 
-RegisterNetEvent('crews:removeBlip', function(identifier)
+RegisterNetEvent('crews:updateNames', function(data)
+    crewNames = data
+end)
+
+RegisterNetEvent('crews:updateTags', function(data)
+    crewTags = data
+end)
+
+RegisterNetEvent('crews:removePlayer', function(identifier)
     if crew then
-        for k,v in pairs(crew.data) do
-            if k == identifier then
-                util.deleteBlip(identifier)
-            end
-        end
-    end
-end)
-
-RegisterNetEvent('crews:removePlayer', function(owner, identifier)
-    if crew and crew.owner == owner then
-        util.deleteBlip(identifier)
-        util.deleteTag(identifier)
+        utils.deleteBlip(identifier)
+        utils.deleteTag(identifier)
     end
 end)
 
 RegisterNetEvent('crews:playerLeft', function(owner)
     if crew and crew.owner == owner then
-        util.deleteBlip()
-        util.deleteTag()
+        utils.deleteBlip()
+        utils.deleteTag()
     end
 end)
 
-RegisterNetEvent('crews:notify', function(text, type)
-    notify(text, type)
+RegisterNetEvent('crews:notify', function(text, _type)
+    notify(text, _type)
 end)
 
-AddEventHandler('onResourceStop', function(resource)
-    if resource == GetCurrentResourceName() then
-        util.deleteBlip()
-        util.deleteTag()
-        DisplayPlayerNameTagsOnBlips(false)
-    end
+AddEventHandler('onResourceStart', function(resourceName)
+    if (GetCurrentResourceName() ~= resourceName) then return end
+    playerSetup()
 end)
+
+AddEventHandler('onResourceStop', function(resourceName)
+    if (GetCurrentResourceName() ~= resourceName) then return end
+    utils.deleteBlip()
+    utils.deleteTag()
+    DisplayPlayerNameTagsOnBlips(false)
+end)
+
+----------------------------------------------------------------
 
 RegisterCommand('crewTags', function()
-    showTags = not showTags
-    notify(_L('toggle_tags', {showTags and _L('tags_enabled') or _L('tags_disabled')}), 'inform')
+    settings.showTags = not settings.showTags
+    notify(_L('toggle_tags', {settings.showTags and _L('tags_enabled') or _L('tags_disabled')}), 'inform')
 end)
 
--- Blips & Tags
 function startLoop()
     CreateThread(function()
         while myIdentifier ~= nil do
             Wait(1000)
             if crew then
-                for k,v in pairs(crew.data) do
+                for identifier,_ in pairs(crew.data) do
+                    identifier = tonumber(identifier)
                     local players = lib.callback.await('crews:blipUpdate', false)
                     if players then
                         for _, obj in pairs(players) do
-                            local blipPlayer = obj[1]
-                            local playerPed = NetworkDoesEntityExistWithNetworkId(obj[2]) and NetworkGetEntityFromNetworkId(obj[2]) or nil
-                            local ident = obj[3]
-                            local name = obj[4]
-                            local coords = obj[5]
-                            if k == ident then
-                                if name ~= GetPlayerName(source) then
-                                    if #(coords.xyz - GetEntityCoords(PlayerPedId()).xyz) < 100.0 then
-                                        if crewBlipsNear[k] == nil then
-                                            if crewBlipsFar[k] then
-                                                RemoveBlip(crewBlipsFar[k])
-                                                crewBlipsFar[k] = nil
+                            local blipPlayer = obj.source
+                            local playerPed = NetworkDoesEntityExistWithNetworkId(obj.ped) and NetworkGetEntityFromNetworkId(obj.ped) or nil
+                            local targetIdentifier, name, coords = obj.identifier, obj.name, obj.coords
+                            repeat Wait(0) until DoesEntityExist(playerPed)
+                            if identifier == targetIdentifier then
+                                if targetIdentifier ~= myIdentifier then
+                                    if #(GetEntityCoords(cache.ped) - coords) < 100.0 then
+                                        if crewBlipsNear[identifier] == nil then
+                                            if crewBlipsFar[identifier] then
+                                                RemoveBlip(crewBlipsFar[identifier])
+                                                crewBlipsFar[identifier] = nil
                                             end
             
                                             local blip = AddBlipForEntity(playerPed)
@@ -122,22 +110,22 @@ function startLoop()
                                             SetBlipScale(blip, 0.7)
                                             SetBlipCategory(blip, 7)
                                             SetBlipShowCone(blip, true)
-                                            crewBlipsNear[k] = blip
+                                            crewBlipsNear[identifier] = blip
                                             
                                             DisplayPlayerNameTagsOnBlips(true)
-                                            BeginTextCommandSetBlipName("STRING")
-                                            AddTextComponentSubstringPlayerName(name)
+                                            AddTextEntry(('CREW_BLIP_%s'):format(blipPlayer), name)
+                                            BeginTextCommandSetBlipName(('CREW_BLIP_%s'):format(blipPlayer))
                                             EndTextCommandSetBlipName(blip)
                                         end
                                     else
-                                        if crewBlipsFar[k] == nil then
-                                            if crewBlipsNear[k] then
-                                                RemoveBlip(crewBlipsNear[k])
-                                                crewBlipsNear[k] = nil
+                                        if crewBlipsFar[identifier] == nil then
+                                            if crewBlipsNear[identifier] then
+                                                RemoveBlip(crewBlipsNear[identifier])
+                                                crewBlipsNear[identifier] = nil
                                             end
             
-                                            if crewBlipsFar[k] and DoesBlipExist(crewBlipsFar[k]) then
-                                                local blip = crewBlipsFar[k]
+                                            if crewBlipsFar[identifier] and DoesBlipExist(crewBlipsFar[identifier]) then
+                                                local blip = crewBlipsFar[identifier]
                                                 SetBlipCoords(blip, coords.xyz)
                                             else
                                                 local blip = AddBlipForCoord(coords.xyz)
@@ -146,24 +134,25 @@ function startLoop()
                                                 SetBlipColour(blip, 2)
                                                 SetBlipScale(blip, 0.7)
                                                 SetBlipCategory(blip, 7)
-                                                crewBlipsFar[k] = blip
+                                                crewBlipsFar[identifier] = blip
                                                 
                                                 DisplayPlayerNameTagsOnBlips(true)
-                                                BeginTextCommandSetBlipName("STRING")
-                                                AddTextComponentSubstringPlayerName(name)
+                                                AddTextEntry(('CREW_BLIP_%s'):format(blipPlayer), name)
+                                                BeginTextCommandSetBlipName(('CREW_BLIP_%s'):format(blipPlayer))
                                                 EndTextCommandSetBlipName(blip)
                                             end
                                         end
                                     end
             
-                                    if showTags then
-                                        crewTags[k] = CreateFakeMpGamerTag(playerPed, '['..(crew.tag or 'nil')..'] '..name, false, false, "", 0, 0, 0, 0)
-                                        SetMpGamerTagColour(crewTags[k], 0, 18)
-                                        SetMpGamerTagVisibility(crewTags[k], 2, 1)
-                                        SetMpGamerTagAlpha(crewTags[k], 2, 255)
-                                        SetMpGamerTagHealthBarColor(crewTags[k], 129)
+                                    if settings.showTags then
+                                        local currentTag = CreateFakeMpGamerTag(playerPed, ('[%s] %s'):format((crew.tag or 'nil'), name), false, false, "", 0, 0, 0, 0)
+                                        SetMpGamerTagColour(currentTag, 0, 18)
+                                        SetMpGamerTagVisibility(currentTag, 2, 1)
+                                        SetMpGamerTagAlpha(currentTag, 2, 255)
+                                        SetMpGamerTagHealthBarColor(currentTag, 129)
+                                        currentTags[identifier] = currentTag
                                     else
-                                        util.deleteTag(k)
+                                        utils.deleteTag(identifier)
                                     end
                                 end
                             end
@@ -177,7 +166,7 @@ end
 
 AddTextEntry("BLIP_OTHPLYR", 'CREW')
 
--- EXPORTS ------------------------------------------------------
+----------------------------------------------------------------
 
 exports('ownsCrew', function()
     if crew and crew.owner == myIdentifier then
@@ -201,4 +190,28 @@ exports('getCrew', function()
     end
 
     return {}
+end)
+
+exports('getCrewOwner', function()
+    if crew and crew.owner then
+        return crew.owner
+    end
+
+    return nil
+end)
+
+exports('getCrewName', function()
+    if crew and crew.label then
+        return crew.label
+    end
+
+    return nil
+end)
+
+exports('getCrewTag', function()
+    if crew and crew.tag then
+        return crew.tag
+    end
+
+    return nil
 end)

@@ -25,18 +25,23 @@ Language['en'] = {
     main_menu_create_desc = 'Click to create a crew.',
     create_name_desc = 'Enter name..',
     create_tag_desc = 'Enter tag.. (4 chars.)',
-    create_success = 'Successfuly created: %s',
+    create_success = 'Successfuly created "%s"!',
 
     -- CREW DELETION
     delete_confirmation_title = 'DELETE CREW',
     delete_confirmation_desc = 'Are you sure that you want to delete this crew?',
-    delete_success = 'Successfuly deleted: %s',
+    delete_success = 'Successfuly deleted "%s".',
+
+    -- LEAVING CREW
+    leave_confirmation_title = 'LEAVE CREW',
+    leave_confirmation_desc = 'Are you sure that you want to leave your current crew?',
+    leave_success = 'You have successfuly left the crew.',
 
     -- INVITES
     invites_title = 'CREW > INVITES',
     invites_btn_desc = 'Click to accept.',
     invites_received_new = 'You have received a crew invite!',
-    invites_success = 'You have joined: %s',
+    invites_success = 'You have joined "%s".',
 
     -- MEMBER LIST
     member_list_title = 'CREW > MEMBERS',
@@ -51,17 +56,30 @@ Language['en'] = {
     member_title = 'MEMBERS > %s',
     member_rank_title = 'CHANGE RANK',
     member_rank_desc = 'Rank: %s',
+    member_rank_input_title = 'Select a rank',
+    member_rank_confirmation_title = 'CHANGE RANK',
+    member_rank_confirmation_desc = 'Are you sure that want to change %s\'s rank to %s?',
+    member_rank_success = 'Successfuly changed %s\'s rank to %s!',
+    player_rank_changed = 'Your rank has been changed to "%s"!',
+    member_crew_transfer_title = 'TRANSFER OWNERSHIP',
+    member_crew_transfer_desc = 'Click to transfer ownership.',
+    member_crew_transfer_confirmation_desc = 'Are you sure that you want to transfer the crew ownership to %s?',
+    member_crew_transfer_success = 'Crew was successfuly transfered to "%s"!',
+    player_crew_transfered = 'The crew\'s ownership was transfered to you.',
     member_kick_title = 'KICK',
     member_kick_desc = 'Click to kick this player.',
     member_kick_confirmation_title = 'KICK PLAYER',
-    member_kick_confirmation_desc = 'Are you sure that you want to kick %s?',
+    member_kick_confirmation_desc = 'Are you sure that you want to kick "%s"?',
     member_kick_success = 'Player was successfuly kicked!',
     player_kicked = 'You have been kicked from your crew!',
+
+    member_rank_owner = 'Leader',
+    member_rank_member = 'Member',
 
     -- INVITING PLAYERS
     invite_title = 'CREW > INVITE',
     invite_btn_desc = 'Click to invite.',
-    invite_success = 'You invited: %s into the crew!',
+    invite_success = 'You invited "%s" into the crew!',
 
     -- SETTINGS
     settings_title = 'CREW > SETTINGS',
@@ -69,8 +87,8 @@ Language['en'] = {
     settings_btn_rename_desc = 'Click to change crew name.',
     settings_btn_tag_title = 'CHANGE TAG',
     settings_btn_rename_desc = 'Click to change crew tag.',
-    rename_success = 'Your crew was renamed to: %s Crew',
-    tag_success = 'Yor crew tag was changed to: %s',
+    rename_success = 'Your crew was renamed to "%s Crew"',
+    tag_success = 'Your crew tag was changed to "%s"',
 
     -- ERRORS
     error_name_used = 'This name is already used..',

@@ -1,91 +1,57 @@
-util = {
-    deleteBlip = function(identifier)
-        if identifier then
-            if crewBlipsNear[identifier] then
-                RemoveBlip(crewBlipsNear[identifier])
-                crewBlipsNear[identifier] = nil
-            end
-            if crewBlipsFar[identifier] then
-                RemoveBlip(crewBlipsFar[identifier])
-                crewBlipsFar[identifier] = nil
-            end
-        else
-            for player, blip in pairs(crewBlipsNear) do
-                RemoveBlip(blip)
-                crewBlipsNear[player] = nil
-            end
-            for player, blip in pairs(crewBlipsFar) do
-                RemoveBlip(blip)
-                crewBlipsFar[player] = nil
-            end
-        end
-    end,
-
-    deleteTag = function(identifier)
-        if identifier then
-            if crewTags[identifier] then
-                RemoveMpGamerTag(crewTags[identifier])
-                crewTags[identifier] = nil
-            end
-        else
-            if crewTags then
-                for player, tag in pairs(crewTags) do
-                    util.deleteTag(player)
-                end
-            end
-        end
-    end,
-
-    getMemberCount = function()
-        if crew then
-            local count = 0
-            for i=1, #crew.data do
-                count = count + 1
-            end
-
-            return count
-        end
-
-        return 0
-    end
-}
-
 crewMenu = {
     openMainMenu = function()
         local elements = {}
         if crew then
-            table.insert(elements,{
+            table.insert(elements, {
                 title = crew.label,
-                description = _L('main_menu_desc', {crew.tag, util.getMemberCount()}),
+                description = _L('main_menu_desc', {crew.tag, utils.getMemberCount()}),
+                arrow = true,
                 onSelect = function()
                     lib.hideContext(onExit)
                     crewMenu.openMemberList()
-                end,
-                arrow = true
+                end
             })
-    
-            if crew.owner == myIdentifier then
-                table.insert(elements,{
+
+            if utils.hasPermission(crew.data[tostring(myIdentifier)].Rank, 'invite') then
+                table.insert(elements, {
                     icon = "user-plus",
                     title = _L('main_menu_invite_title'),
+                    description = _L('main_menu_invite_desc'),
                     onSelect = function()
                         lib.hideContext(onExit)
                         crewMenu.openPlayerList()
-                    end,
-                    description = _L('main_menu_invite_desc')
+                    end
                 })
-                table.insert(elements,{
+            end
+
+            if utils.hasPermission(crew.data[tostring(myIdentifier)].Rank, 'kick') or utils.hasPermission(crew.data[tostring(myIdentifier)].Rank, 'changeRank') then
+                table.insert(elements, {
                     icon = "users",
                     title = _L('main_menu_manage_title'),
+                    description = _L('main_menu_manage_desc'),
                     onSelect = function()
                         lib.hideContext(onExit)
                         crewMenu.openPlayerManagement()
-                    end,
-                    description = _L('main_menu_manage_desc')
+                    end
                 })
-                table.insert(elements,{
+            end
+            if utils.hasPermission(crew.data[tostring(myIdentifier)].Rank, 'changeName') or utils.hasPermission(crew.data[tostring(myIdentifier)].Rank, 'changeTag') then
+                table.insert(elements, {
+                    icon = "gear",
+                    title = _L('main_menu_settings_title'),
+                    description = _L('main_menu_settings_desc'),
+                    onSelect = function()
+                        lib.hideContext(onExit)
+                        crewMenu.openSettings()
+                    end
+                })
+            end
+
+            if crew.owner == myIdentifier then
+                table.insert(elements, {
                     icon = "trash",
                     title = _L('main_menu_delete_title'),
+                    description = _L('main_menu_delete_desc'),
                     onSelect = function()
                         local alert = lib.alertDialog({
                             header = _L('delete_confirmation_title'),
@@ -97,27 +63,27 @@ crewMenu = {
                             TriggerServerEvent('crews:deleteCrew')
                         end
                         lib.hideContext(onExit)
-                    end,
-                    description = _L('main_menu_delete_desc')
+                    end
                 })
-                table.insert(elements,{
-                    icon = "gear",
-                    title = _L('main_menu_settings_title'),
-                    onSelect = function()
-                        lib.hideContext(onExit)
-                        crewMenu.openSettings()
-                    end,
-                    description = _L('main_menu_settings_desc')
-                })
-            else
-                table.insert(elements,{
+            end
+
+            if crew.owner ~= myIdentifier then
+                table.insert(elements, {
                     icon = "delete-left",
                     title = _L('main_menu_leave_title'),
+                    description = _L('main_menu_leave_desc'),
                     onSelect = function()
-                        TriggerServerEvent('crews:leaveCrew')
+                        local alert = lib.alertDialog({
+                            header = _L('leave_confirmation_title'),
+                            content = _L('leave_confirmation_desc'),
+                            centered = true,
+                            cancel = true
+                        })
+                        if alert == 'confirm' then
+                            TriggerServerEvent('crews:leaveCrew')
+                        end
                         lib.hideContext(onExit)
-                    end,
-                    description = _L('main_menu_leave_desc')
+                    end
                 })
             end
         else
@@ -130,6 +96,7 @@ crewMenu = {
                 end,
                 description = _L('main_menu_invites_desc')
             })
+
             table.insert(elements,{
                 icon = "plus",
                 title = _L('main_menu_create_title'),
@@ -163,6 +130,7 @@ crewMenu = {
                 description = _L('main_menu_create_desc')
             })
         end
+        
         lib.registerContext({
             id = 'crew_menu',
             title = _L('main_menu_title'),
@@ -179,7 +147,7 @@ crewMenu = {
                     icon = "hand",
                     title = v,
                     onSelect = function()
-                        TriggerServerEvent('crews:acceptCrew', k)
+                        TriggerServerEvent('crews:joinCrew', k)
                         lib.hideContext(onExit)
                     end,
                     description = _L('invites_btn_desc')
@@ -198,35 +166,44 @@ crewMenu = {
         end
     end,
 
-    -- TODO: Make ranks actually useful.
     openMemberList = function()
         local elements = {}
         if crew then
             for k,v in pairs(crew.data) do
-                if k ~= myIdentifier then
-                    table.insert(elements,{
+                local rankIndex = utils.getRankIndex(crew.data[k].Rank)
+                if crew.data[k].Rank == 'owner' then
+                    table.insert(elements, {
+                        index = 0,
+                        icon = "crown",
+                        title = v.Name,
+                        description = _L('member_rank_desc', {_L('member_rank_owner')})
+                    })
+                elseif rankIndex and CONFIG.RANKS[rankIndex] then
+                    table.insert(elements, {
+                        index = rankIndex,
                         icon = "user",
-                        title = v,
-                        description = "Rank: Member" -- WIP
+                        title = v.Name,
+                        description = _L('member_rank_desc', {CONFIG.RANKS[rankIndex].label})
                     })
                 else
-                    table.insert(elements,{
-                        icon = "crown",
-                        title = _L('member_list_owner_title', {v}),
-                        description = "Rank: Owner" -- WIP
+                    table.insert(elements, {
+                        index = 999,
+                        icon = "user",
+                        title = v.Name,
+                        description = _L('member_rank_desc', {_L('member_rank_member')})
                     })
                 end
             end
     
-            local function compareByWord(a, b, word)
-                local wordA = a.description:match(word)
-                local wordB = b.description:match(word)
-            
-                return (wordA or "") < (wordB or "")
+            local function compareByWord(a, b)
+                local numberA = a.index == 0
+                local numberB = b.index == 0
+
+                return numberA and a.index > b.index or numberB and b.index > a.index
             end
     
             table.sort(elements, function(a, b)
-                return compareByWord(a, b, 'Owner')
+                return compareByWord(a, b)
             end)
     
             lib.registerContext({
@@ -243,12 +220,15 @@ crewMenu = {
         local elements = {}
         if crew then
             for k,v in pairs(crew.data) do
-                if k then
-                    if k ~= myIdentifier then
-                        table.insert(elements,{
+                if k and tonumber(k) ~= myIdentifier then
+                    local memberRank = utils.getRankIndex(v.Rank)
+                    local myRank = utils.getRankIndex(crew.data[tostring(myIdentifier)].Rank)
+                    if memberRank > myRank then
+                        local rankLabel = utils.getRankLabel(v.Rank)
+                        table.insert(elements, {
                             icon = "hand",
-                            title = v,
-                            description = _L('manage_btn_desc'),
+                            title = v.Name,
+                            description = _L('member_rank_desc', {rankLabel}) .. '\n' .. _L('manage_btn_desc'),
                             arrow = true,
                             onSelect = function()
                                 lib.hideContext(onExit)
@@ -256,12 +236,14 @@ crewMenu = {
                             end
                         })
                     end
-                else
-                    table.insert(elements,{
-                        icon = "face-frown",
-                        title = _L('manage_no_players')
-                    })
                 end
+            end
+
+            if #elements <= 0 then
+                table.insert(elements,{
+                    icon = "face-frown",
+                    title = _L('manage_no_players')
+                })
             end
             
             lib.registerContext({
@@ -274,82 +256,127 @@ crewMenu = {
         end
     end,
 
-    -- TODO: Make ranks actually useful.
-    openMemberSettings = function(identifier, name)
+    openMemberSettings = function(identifier, data)
+        identifier = tonumber(identifier)
+        local myRank = crew.data[tostring(myIdentifier)]
         local elements = {}
         if crew and crew.data then
             if identifier ~= myIdentifier then
-                -- table.insert(elements,{
-                --     icon = "ranking-star",
-                --     title = "CHANGE RANK",
-                --     description = "Rank: Member",
-                --     arrow = true,
-                --     onSelect = function()
-                --         lib.hideContext(onExit)
-                --         local input = lib.inputDialog('CHANGE RANK', {
-                --             {
-                --                 type = 'select',
-                --                 label = 'Select a rank',
-                --                 options = {
-                --                     {value = 'owner', label = 'Owner'},
-                --                     {value = 'officer', label = 'Officer'},
-                --                     {value = 'member', label = 'Member'},
-                --                 },
-                --                 default = 'member',
-                --                 icon = "ranking-star",
-                --                 required = true
-                --             },
-                --         })
-                --         if not input then return end
-    
-                --         -- print(input[1])
-                --         if input[1] == 'owner' then
-                --             local alert = lib.alertDialog({
-                --                 header = 'TRANSFER OWNERSHIP',
-                --                 content = ('Are you sure that want to transfer the crew ownership to %s?'):format(name),
-                --                 centered = true,
-                --                 cancel = true
-                --             })
-                --             if alert == 'confirm' then
-                --                 notify(('Crew was successfuly transfered to %s!'):format(name), 'success')
-                --             end
-                --         elseif input[1] == 'officer' then
-                --             local alert = lib.alertDialog({
-                --                 header = 'CHANGE RANK',
-                --                 content = ('Are you sure that want to give an officer rank to %s?'):format(name),
-                --                 centered = true,
-                --                 cancel = true
-                --             })
-                --             if alert == 'confirm' then
-                --                 notify(('Successfuly promoted %s to Officer!'):format(name), 'success')
-                --             end
-                --         end
-                --     end
-                -- })
+                local ranks = {}
 
-                table.insert(elements,{
-                    icon = "hand",
-                    title = _L('member_kick_title'),
-                    onSelect = function()
-                        lib.hideContext(onExit)
-                        local alert = lib.alertDialog({
-                            header = _L('member_kick_confirmation_title'),
-                            content = _L('member_kick_confirmation_desc', {name}),
-                            centered = true,
-                            cancel = true
-                        })
-                        if alert == 'confirm' then
-                            TriggerServerEvent('crews:removeFromCrew', identifier)
-                            notify(_L('member_kick_success'), 'success')
+                for i=1, #CONFIG.RANKS do
+                    local rankData = CONFIG.RANKS[i]
+
+                    if rankData.name ~= data.Rank then
+                        ranks[#ranks+1] = {
+                            value = rankData.name, label = rankData.label,
+                        }
+                    end
+                end
+
+                if data.Rank ~= 'member' then
+                    ranks[#ranks+1] = {
+                        value = 'member', label = _L('member_rank_member'),
+                    }
+                end
+
+                local rankLabel = utils.getRankLabel(data.Rank)
+                if utils.hasPermission(myRank.Rank, 'changeRank') then
+                    table.insert(elements, {
+                        icon = "ranking-star",
+                        title = _L('member_rank_title'),
+                        description = _L('member_rank_desc', {rankLabel}),
+                        arrow = true,
+                        onSelect = function()
+                            lib.hideContext(onExit)
+                            local input = lib.inputDialog(_L('member_rank_title'), {
+                                {
+                                    type = 'select',
+                                    label = _L('member_rank_input_title'),
+                                    options = ranks,
+                                    default = 'member',
+                                    icon = "ranking-star",
+                                    required = true
+                                },
+                            })
+                            if not input then return end
+        
+                            local rankIndex = utils.getRankIndex(input[1])
+                            local rankData = nil
+
+                            if rankIndex == 0 then
+                                rankData = {
+                                    name = 'owner',
+                                    label = _L('member_rank_owner')
+                                }
+                            elseif CONFIG.RANKS[rankIndex] then
+                                rankData = CONFIG.RANKS[rankIndex]
+                            else
+                                rankData = {
+                                    name = 'member',
+                                    label = _L('member_rank_member')
+                                }
+                            end
+
+                            local alert = lib.alertDialog({
+                                header = _L('member_rank_confirmation_title'),
+                                content = _L('member_rank_confirmation_desc', {data.Name, rankData.label}),
+                                centered = true,
+                                cancel = true
+                            })
+                            if alert == 'confirm' then
+                                TriggerServerEvent('crews:changeRank', identifier, rankData)
+                                notify(_L('member_rank_success', {data.Name, rankData.label}), 'success')
+                            end
                         end
-                    end,
-                    description = _L('member_kick_desc')
-                })
+                    })
+                end
+
+                if utils.hasPermission(myRank.Rank, 'kick') then
+                    table.insert(elements, {
+                        icon = "hand",
+                        title = _L('member_kick_title'),
+                        description = _L('member_kick_desc'),
+                        onSelect = function()
+                            lib.hideContext(onExit)
+                            local alert = lib.alertDialog({
+                                header = _L('member_kick_confirmation_title'),
+                                content = _L('member_kick_confirmation_desc', {data.Name}),
+                                centered = true,
+                                cancel = true
+                            })
+                            if alert == 'confirm' then
+                                TriggerServerEvent('crews:removeFromCrew', identifier)
+                                notify(_L('member_kick_success'), 'success')
+                            end
+                        end
+                    })
+                end
+
+                if myRank.Rank == 'owner' then
+                    table.insert(elements, {
+                        icon = "crown",
+                        title = _L('member_crew_transfer_title'),
+                        description = _L('member_crew_transfer_desc'),
+                        onSelect = function()
+                            local alert = lib.alertDialog({
+                                header = _L('member_crew_transfer_title'),
+                                content = _L('member_crew_transfer_confirmation_desc', {data.Name}),
+                                centered = true,
+                                cancel = true
+                            })
+                            if alert == 'confirm' then
+                                TriggerServerEvent('crews:transferOwnership', identifier)
+                                notify(_L('member_crew_transfer_success', {data.Name}), 'success')
+                            end
+                        end
+                    })
+                end
             end
     
             lib.registerContext({
                 id = 'crew_menu-member',
-                title = _L('member_title', {name}),
+                title = _L('member_title', {data.Name}),
                 menu = 'crew_menu-manage',
                 options = elements
             })
@@ -361,13 +388,16 @@ crewMenu = {
         local elements = {}
         if crew then
             local players = GetActivePlayers()
-            local player = PlayerId()
-            local myCoords = GetEntityCoords(PlayerPedId())
+            local coords = GetEntityCoords(cache.ped)
 
-            for k,v in ipairs(players) do
-                if player ~= v then
-                    local entCoords = GetEntityCoords(GetPlayerPed(v))
-                    if #(myCoords - entCoords) < CONFIG.CREW_SETTINGS.MAX_INVITE_DISTANCE then
+            if players then
+                for k,v in ipairs(players) do
+                    if cache.playerId ~= v then
+                        local targetCoords = GetEntityCoords(GetPlayerPed(v))
+                        if CONFIG.MAX_INVITE_DISTANCE and #(coords - targetCoords) > CONFIG.MAX_INVITE_DISTANCE then
+                            return notify(_L('error_nobody_around'), 'error')
+                        end
+
                         table.insert(elements,{
                             icon = "plus",
                             title = GetPlayerName(v),
@@ -389,8 +419,6 @@ crewMenu = {
                     options = elements
                 })
                 lib.showContext('crew_menu-list')
-            else
-                notify(_L('error_nobody_around'), 'error')
             end
         end
     end,
@@ -398,56 +426,64 @@ crewMenu = {
     openSettings = function()
         local elements = {}
         if crew then
-            table.insert(elements,{
-                icon = "pencil",
-                title = _L('settings_btn_rename_title'),
-                onSelect = function()
-                    local input = lib.inputDialog(_L('settings_btn_rename_title'), {_L('create_name_desc')})
-                    local label = nil
-                    if not input then return end
-                    if not input[1] then label = false else label = input[1] end
-                    if #crewNames > 0 then
-                        for _, name in pairs(crewNames) do
-                            if name:lower():find(input[1]:lower()..' crew') then
-                                notify(_L('error_name_used'), 'error')
-                                return
-                            end
-                        end
-                    end
-    
-                    TriggerServerEvent('crews:rename', label)
-                end,
-                description = _L('settings_btn_rename_desc')
-            })
-            table.insert(elements,{
-                icon = "pencil",
-                title = _L('settings_btn_tag_title'),
-                onSelect = function()
-                    local input = lib.inputDialog(_L('settings_btn_tag_title'), {_L('create_tag_desc')})
-                    if not input then return end
-                    local tag = string.sub(input[1], 1, 4)
-                    if #crewTags > 0 then
-                        for _, name in pairs(crewTags) do
-                            if type(name) == 'string' then
-                                if name:lower():find(tag:lower()) then
-                                    notify(_L('error_tag_used'), 'error')
-                                    return
+            for k,v in pairs(crew.data) do
+                if utils.hasPermission(v.Rank, 'changeName') then
+                    table.insert(elements,{
+                        icon = "pencil",
+                        title = _L('settings_btn_rename_title'),
+                        onSelect = function()
+                            local input = lib.inputDialog(_L('settings_btn_rename_title'), {_L('create_name_desc')})
+                            local label = nil
+                            if not input then return end
+                            if not input[1] then label = false else label = input[1] end
+                            if #crewNames > 0 then
+                                for _, name in pairs(crewNames) do
+                                    if name:lower():find(input[1]:lower()..' crew') then
+                                        notify(_L('error_name_used'), 'error')
+                                        return
+                                    end
                                 end
                             end
-                        end
-                    end
-    
-                    TriggerServerEvent('crews:newTag', tag:upper())
-                end,
-                description = _L('settings_btn_rename_desc')
-            })
-            -- table.insert(elements,{
-            --     icon = "gun",
-            --     title = "PVP",
-            --     disabled = true,
-            --     description = "Click to toggle PVP for crew members."
-            -- })
-    
+            
+                            TriggerServerEvent('crews:renameCrew', label)
+                        end,
+                        description = _L('settings_btn_rename_desc')
+                    })
+                end
+
+                if utils.hasPermission(v.Rank, 'changeTag') then
+                    table.insert(elements,{
+                        icon = "pencil",
+                        title = _L('settings_btn_tag_title'),
+                        onSelect = function()
+                            local input = lib.inputDialog(_L('settings_btn_tag_title'), {_L('create_tag_desc')})
+                            if not input then return end
+                            local tag = string.sub(input[1], 1, 4)
+                            if #crewTags > 0 then
+                                for _, name in pairs(crewTags) do
+                                    if type(name) == 'string' then
+                                        if name:lower():find(tag:lower()) then
+                                            notify(_L('error_tag_used'), 'error')
+                                            return
+                                        end
+                                    end
+                                end
+                            end
+            
+                            TriggerServerEvent('crews:newTag', tag:upper())
+                        end,
+                        description = _L('settings_btn_rename_desc')
+                    })
+                end
+                
+                -- table.insert(elements,{
+                --     icon = "gun",
+                --     title = "PVP",
+                --     disabled = true,
+                --     description = "Click to toggle PVP for crew members."
+                -- })
+            end
+                
             lib.registerContext({
                 id = 'crew_menu-settings',
                 title = _L('settings_title'),
@@ -456,5 +492,112 @@ crewMenu = {
             })
             lib.showContext('crew_menu-settings')
         end
+    end, 
+}
+
+utils = {
+    deleteBlip = function(identifier)
+        identifier = tonumber(identifier)
+        if identifier then
+            if crewBlipsNear[identifier] then
+                RemoveBlip(crewBlipsNear[identifier])
+                crewBlipsNear[identifier] = nil
+            end
+            if crewBlipsFar[identifier] then
+                RemoveBlip(crewBlipsFar[identifier])
+                crewBlipsFar[identifier] = nil
+            end
+        else
+            for player, blip in pairs(crewBlipsNear) do
+                RemoveBlip(blip)
+            end
+            for player, blip in pairs(crewBlipsFar) do
+                RemoveBlip(blip)
+            end
+            table.clear(crewBlipsNear)
+            table.clear(crewBlipsFar)
+        end
+    end,
+
+    deleteTag = function(identifier)
+        identifier = tonumber(identifier)
+        if identifier then
+            if currentTags[identifier] then
+                RemoveMpGamerTag(currentTags[identifier])
+                currentTags[identifier] = nil
+            end
+        else
+            if currentTags then
+                for player, tag in pairs(currentTags) do
+                    RemoveMpGamerTag(tag)
+                end
+                table.clear(currentTags)
+            end
+        end
+    end,
+
+    getMemberCount = function()
+        if crew then
+            local count = 0
+            for _,_ in pairs(crew.data) do
+                count = count + 1
+            end
+
+            return count
+        end
+
+        return false
+    end,
+
+    getRankIndex = function(rank)
+        for i=1, #CONFIG.RANKS do
+            local data = CONFIG.RANKS[i]
+
+            if data.name == rank then
+                return i
+            elseif rank == 'owner' then
+                return 0
+            elseif rank == 'member' then
+                return 999
+            end
+        end
+
+        return false
+    end,
+
+    getRankLabel = function(rank)
+        for i=1, #CONFIG.RANKS do
+            local data = CONFIG.RANKS[i]
+
+            if data.name == rank and data.label then
+                return data.label
+            elseif rank == 'owner' then
+                return _L('member_rank_owner')
+            elseif rank == 'member' then
+                return _L('member_rank_member')
+            end
+        end
+
+        return error(('Couldn\'t retrieve rank label for rank id:'):format(rank))
+    end,
+
+    hasPermission = function(rank, permission)
+        for i=1, #CONFIG.RANKS do
+            local data = CONFIG.RANKS[i]
+
+            if data.name == rank then
+                for k,v in pairs(data.permissions) do
+                    if k == permission then
+                        return v
+                    end
+                end
+            elseif rank == 'owner' then
+                return true
+            elseif rank == 'member' then
+                return false
+            end
+        end
+
+        return false
     end,
 }

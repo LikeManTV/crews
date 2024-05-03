@@ -1,22 +1,31 @@
-CONFIG = {}
-
-CONFIG.GENERAL = {
+CONFIG = {
     LANGUAGE = 'en',
-}
-
-CONFIG.CREW_SETTINGS = {
     COMMAND = 'crew',
-    ENABLE_KEYBIND = false,
-    OPEN_KEY = 'F4',
     MAX_CREW_MEMBERS = 4,
-    MAX_INVITE_DISTANCE = 5.0,
+    MAX_INVITE_DISTANCE = 5.0, -- false to disable distance check
+
+    RANKS = { -- Add your own ranks here!
+        [1] = { -- Order in which are ranks displayed (owner is always first and member last).
+            name = 'officer', -- The name must be unique.
+            label = 'Officer', -- Rank label shown in menu.
+            permissions = { -- Configure permissions per rank.
+                invite = true,
+                kick = true,
+                changeRank = false,
+                changeName = false,
+                changeTag = false
+            }
+        },
+    }
 }
 
 -- Customize the notifications here.
-notify = function(text, type)
+notify = function(text, _type)
+    if not _type then _type = 'inform' end
+
     lib.notify({
-        title = 'CREW',
+        title = 'CREWS',
         description = text,
-        type = type
+        type = _type
     })
 end
