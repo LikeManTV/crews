@@ -91,6 +91,7 @@ Language['cs'] = {
     -- ERRORS
     error_name_used = 'Tento název je již zabraný..',
     error_tag_used = 'Tento tag je již zabraný..',
+    error_tag_invalid = 'Tag musí obsahovat 4 písmena..',
     error_no_invites = 'Nemáte žádné pozvánky!',
     error_nobody_around = 'V okolí není žádný hráč!',
     error_already_invited = 'Tohoto hráče jste již pozvali.',

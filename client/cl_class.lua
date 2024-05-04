@@ -12,7 +12,7 @@ crewMenu = {
                 end
             })
 
-            if utils.hasPermission(crew.data[tostring(myIdentifier)].Rank, 'invite') then
+            if utils.hasPermission(crew.data[myIdentifier].Rank, 'invite') then
                 table.insert(elements, {
                     icon = "user-plus",
                     title = _L('main_menu_invite_title'),
@@ -24,7 +24,7 @@ crewMenu = {
                 })
             end
 
-            if utils.hasPermission(crew.data[tostring(myIdentifier)].Rank, 'kick') or utils.hasPermission(crew.data[tostring(myIdentifier)].Rank, 'changeRank') then
+            if utils.hasPermission(crew.data[myIdentifier].Rank, 'kick') or utils.hasPermission(crew.data[myIdentifier].Rank, 'changeRank') then
                 table.insert(elements, {
                     icon = "users",
                     title = _L('main_menu_manage_title'),
@@ -35,7 +35,7 @@ crewMenu = {
                     end
                 })
             end
-            if utils.hasPermission(crew.data[tostring(myIdentifier)].Rank, 'changeName') or utils.hasPermission(crew.data[tostring(myIdentifier)].Rank, 'changeTag') then
+            if utils.hasPermission(crew.data[myIdentifier].Rank, 'changeName') or utils.hasPermission(crew.data[myIdentifier].Rank, 'changeTag') then
                 table.insert(elements, {
                     icon = "gear",
                     title = _L('main_menu_settings_title'),
@@ -110,18 +110,20 @@ crewMenu = {
                     if #crewNames > 0 then
                         for _, name in pairs(crewNames) do
                             if name:lower():find(input[1]:lower()..' crew') then
-                                notify(_L('error_name_used'), 'error')
-                                return
+                                return notify(_L('error_name_used'), 'error')
                             end
                         end
                     end
                     if #crewTags > 0 then
                         for _, name in pairs(crewTags) do
                             if name:lower():find(tag:lower()) then
-                                notify(_L('error_tag_used'), 'error')
-                                return
+                                return notify(_L('error_tag_used'), 'error')
                             end
                         end
+                    end
+
+                    if #tag < 4 then
+                        return notify(_L('error_tag_invalid'), 'error')
                     end
     
                     TriggerServerEvent('crews:createCrew', label, tag:upper())
@@ -220,9 +222,9 @@ crewMenu = {
         local elements = {}
         if crew then
             for k,v in pairs(crew.data) do
-                if k and tonumber(k) ~= myIdentifier then
+                if k and k ~= myIdentifier then
                     local memberRank = utils.getRankIndex(v.Rank)
-                    local myRank = utils.getRankIndex(crew.data[tostring(myIdentifier)].Rank)
+                    local myRank = utils.getRankIndex(crew.data[myIdentifier].Rank)
                     if memberRank > myRank then
                         local rankLabel = utils.getRankLabel(v.Rank)
                         table.insert(elements, {
@@ -257,8 +259,7 @@ crewMenu = {
     end,
 
     openMemberSettings = function(identifier, data)
-        identifier = tonumber(identifier)
-        local myRank = crew.data[tostring(myIdentifier)]
+        local myRank = crew.data[myIdentifier]
         local elements = {}
         if crew and crew.data then
             if identifier ~= myIdentifier then
@@ -425,7 +426,7 @@ crewMenu = {
 
     openSettings = function()
         local elements = {}
-        if crew then
+        if crew and crew.data then
             for k,v in pairs(crew.data) do
                 if utils.hasPermission(v.Rank, 'changeName') then
                     table.insert(elements,{
@@ -439,8 +440,7 @@ crewMenu = {
                             if #crewNames > 0 then
                                 for _, name in pairs(crewNames) do
                                     if name:lower():find(input[1]:lower()..' crew') then
-                                        notify(_L('error_name_used'), 'error')
-                                        return
+                                        return notify(_L('error_name_used'), 'error')
                                     end
                                 end
                             end
@@ -463,11 +463,14 @@ crewMenu = {
                                 for _, name in pairs(crewTags) do
                                     if type(name) == 'string' then
                                         if name:lower():find(tag:lower()) then
-                                            notify(_L('error_tag_used'), 'error')
-                                            return
+                                            return notify(_L('error_tag_used'), 'error')
                                         end
                                     end
                                 end
+                            end
+
+                            if #tag < 4 then
+                                return notify(_L('error_tag_invalid'), 'error')
                             end
             
                             TriggerServerEvent('crews:newTag', tag:upper())
@@ -497,7 +500,6 @@ crewMenu = {
 
 utils = {
     deleteBlip = function(identifier)
-        identifier = tonumber(identifier)
         if identifier then
             if crewBlipsNear[identifier] then
                 RemoveBlip(crewBlipsNear[identifier])
@@ -508,10 +510,10 @@ utils = {
                 crewBlipsFar[identifier] = nil
             end
         else
-            for player, blip in pairs(crewBlipsNear) do
+            for _, blip in pairs(crewBlipsNear) do
                 RemoveBlip(blip)
             end
-            for player, blip in pairs(crewBlipsFar) do
+            for _, blip in pairs(crewBlipsFar) do
                 RemoveBlip(blip)
             end
             table.clear(crewBlipsNear)
@@ -520,7 +522,6 @@ utils = {
     end,
 
     deleteTag = function(identifier)
-        identifier = tonumber(identifier)
         if identifier then
             if currentTags[identifier] then
                 RemoveMpGamerTag(currentTags[identifier])
@@ -528,7 +529,7 @@ utils = {
             end
         else
             if currentTags then
-                for player, tag in pairs(currentTags) do
+                for _, tag in pairs(currentTags) do
                     RemoveMpGamerTag(tag)
                 end
                 table.clear(currentTags)

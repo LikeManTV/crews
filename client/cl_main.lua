@@ -86,7 +86,6 @@ function startLoop()
             Wait(1000)
             if crew then
                 for identifier,_ in pairs(crew.data) do
-                    identifier = tonumber(identifier)
                     local players = lib.callback.await('crews:blipUpdate', false)
                     if players then
                         for _, obj in pairs(players) do
@@ -145,7 +144,7 @@ function startLoop()
                                     end
             
                                     if settings.showTags then
-                                        local currentTag = CreateFakeMpGamerTag(playerPed, ('[%s] %s'):format((crew.tag or 'nil'), name), false, false, "", 0, 0, 0, 0)
+                                        local currentTag = CreateFakeMpGamerTag(playerPed, ('[%s] %s'):format((crew and crew.tag or 'nil'), name), false, false, "", 0, 0, 0, 0)
                                         SetMpGamerTagColour(currentTag, 0, 18)
                                         SetMpGamerTagVisibility(currentTag, 2, 1)
                                         SetMpGamerTagAlpha(currentTag, 2, 255)

@@ -93,6 +93,7 @@ Language['en'] = {
     -- ERRORS
     error_name_used = 'This name is already used..',
     error_tag_used = 'This tag is already used..',
+    error_tag_invalid = 'Tag must be 4 characters long..',
     error_no_invites = 'You don\'t have any invites!',
     error_nobody_around = 'There are no players around!',
     error_already_invited = 'You have already invited this player.',
