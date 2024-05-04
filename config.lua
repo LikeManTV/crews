@@ -26,6 +26,7 @@ notify = function(text, _type)
     lib.notify({
         title = 'CREWS',
         description = text,
-        type = _type
+        type = _type,
+        duration = 8000
     })
 end
