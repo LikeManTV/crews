@@ -10,21 +10,26 @@ CreateThread(function()
         if result then
             for i=1, #result do
                 local row = result[i]
-                local success, decodedData = pcall(json.decode, row.data)
-                if success then
-                    if decodedData then
-                        crews[tostring(row.owner)] = {owner = tostring(row.owner), label = row.label, tag = row.tag, data = decodedData}
-                        crewNames[tostring(row.owner)] = row.label
-                        crewTags[tostring(row.owner)] = row.tag
-                        for k,_ in pairs(decodedData) do
-                            crewByIdentifier[tostring(k)] = tostring(row.owner)
+                if row and row.owner ~= (nil or "") then
+                    local success, decodedData = pcall(json.decode, row.data)
+                    if success then
+                        if decodedData then
+                            crews[tostring(row.owner)] = {owner = tostring(row.owner), label = row.label, tag = row.tag, data = decodedData}
+                            crewNames[tostring(row.owner)] = row.label
+                            crewTags[tostring(row.owner)] = row.tag
+                            for k,_ in pairs(decodedData) do
+                                crewByIdentifier[tostring(k)] = tostring(row.owner)
+                            end
+                        else
+                            error("Decoded data is nil for JSON:", row.data)
                         end
                     else
-                        error("Decoded data is nil for JSON:", row.data)
+                        print("Problematic JSON string:", row.data)
+                        error("Error decoding JSON:", decodedData)
                     end
                 else
-                    error("Error decoding JSON:", decodedData)
-                    print("Problematic JSON string:", row.data)
+                    print(json.encode(row, {intend = true}))
+                    error("Error accessing crew in database")
                 end
             end
         end
