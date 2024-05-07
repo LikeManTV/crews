@@ -22,6 +22,12 @@ Also feel free to make a PR.
 - Blips between members
 - Nametags above head (/crewTags to hide)
   - Displays player's health
+ 
+## ⏰ Planned Features
+- Bridge system for custom menu integrations.
+- Crew level/point system & leaderboard.
+- In-game rank editor.
+- UI displaying active crew members.
 
 ## 🛠️ Dependencies
 - [oxmysql](https://github.com/overextended/oxmysql)
@@ -35,14 +41,8 @@ Also feel free to make a PR.
 5. Add `ensure crews` to your server.cfg
 6. Restart the server
 
-`OPTIONAL` - If you want to have permissions compatible with HRS scripts.
-- Follow the tutorial in `SETUP/HRS-INTEGRATION.txt`
-
-## ⏰ Planned Features
-- Bridge system for custom menu integrations.
-- Crew level/point system & leaderboard.
-- In-game rank editor.
-- UI displaying active crew members.
+`OPTIONAL` - If you want to have permissions compatible with HRS scripts.<br>
+Follow the tutorial in `SETUP/HRS-INTEGRATION.txt`
 
 ## 📝 Exports (client)
 - `ownsCrew()` - returns true if player owns a crew
