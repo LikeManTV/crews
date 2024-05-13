@@ -3,7 +3,7 @@ QBCore = exports['qb-core']:GetCoreObject()
 
 function getIdentifier(playerId)
     local player = QBCore.Functions.GetPlayer(playerId)
-    return player.PlayerData.citizenid
+    return tostring(player.PlayerData.citizenid)
 end
 
 function getPlayerFromIdentifier(identifier)

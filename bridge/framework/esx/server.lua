@@ -3,7 +3,7 @@ ESX = exports.es_extended:getSharedObject()
 
 function getIdentifier(playerId)
     local player = ESX.GetPlayerFromId(playerId)
-    return player.getIdentifier()
+    return tostring(player.getIdentifier())
 end
 
 function getPlayerFromIdentifier(identifier)

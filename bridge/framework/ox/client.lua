@@ -5,7 +5,7 @@ AddEventHandler('ox:playerLoaded', function(data)
     if data and data.charId then
         myIdentifier = data.charId
 
-        TriggerServerEvent('crews:getCrew', data.charId)
+        TriggerServerEvent('crews:getCrew', tostring(data.charId))
         startLoop()
     else
         error('Failed to retrieve player identifier.')
@@ -19,9 +19,9 @@ end)
 function playerSetup()
     repeat Wait(0) until player and player.charId
     if player and player.charId then
-        myIdentifier = player.charId
+        myIdentifier = tostring(player.charId)
 
-        TriggerServerEvent('crews:getCrew', player.charId)
+        TriggerServerEvent('crews:getCrew', tostring(player.charId))
         startLoop()
     else
         error('Failed to retrieve player identifier.')

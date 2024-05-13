@@ -4,7 +4,7 @@ CreateThread(function() lib.load('@ox_core.imports.server') end)
 function getIdentifier(playerId)
     local player = Ox.GetPlayer(playerId)
     if player and player.charId then
-        return player.charId
+        return tostring(player.charId)
     end
 
     return nil
