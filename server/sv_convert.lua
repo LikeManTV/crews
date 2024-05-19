@@ -76,17 +76,19 @@ local function convert()
 
         for owner, v in pairs(crews) do
             count += 1
-            parameters[count] = {
+            table.insert(parameters, {
                 v.owner,
                 v.label,
                 v.tag,
                 json.encode(v.data),
                 owner
-            }
+            })
         end
 
         if parameters then
-            MySQL.prepare.await('UPDATE crews SET owner = ?, label = ?, tag = ?, data = ? WHERE owner = ?', parameters)
+            for i=1, #parameters do
+                MySQL.prepare.await('UPDATE crews SET owner = ?, label = ?, tag = ?, data = ? WHERE owner = ?', parameters[i])
+            end
             print(('^2Successfully converted %s crews.'):format(finalCount))
         end
 
