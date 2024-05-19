@@ -19,36 +19,47 @@ local function convert()
             local changed = false
             local crew = crewList[i]
 
-            if crew and crew.owner ~= nil then
-                crews[crew.owner] = {owner = crew.owner, label = crew.label, tag = crew.tag, data = json.decode(crew.data)}
+            if crew and crew.owner then
+               crews[crew.owner] = {
+                    owner = crew.owner,
+                    label = crew.label or 'ChangeMe',
+                    tag = crew.tag or 'CREW',
+                    data = json.decode(crew.data)
+                }
 
-                if not crew.label or crew.label == (nil or "") then
+                if not crew.label or crew.label == "" then
                     crews[crew.owner].label = 'ChangeMe'
                     changed = true
                 end
                 
-                if not crew.tag or crew.tag == (nil or "") then
+                if not crew.tag or crew.tag == "" then
                     crews[crew.owner].tag = 'CREW'
                     changed = true
                 end
 
                 for identifier, data in pairs(crews[crew.owner].data) do
-                    if not data?.Name then
+                    if type(data) == 'string' then
+                        data = {Name = data}
+                    end
+
+                    if data and not data.Name then
                         local player = getPlayerFromIdentifier(identifier)
                         if player then
-                            crews[crew.owner].data[identifier].Name = GetPlayerName(player.source)
+                            data.Name = GetPlayerName(player.source)
                             changed = true
                         end
                     end
 
-                    if not data?.Rank then
+                    if data and not data.Rank then
                         if identifier == crew.owner then
-                            crews[crew.owner].data[identifier].Rank = 'owner'
+                            data.Rank = 'owner'
                         else
-                            crews[crew.owner].data[identifier].Rank = 'member'
+                            data.Rank = 'member'
                         end
                         changed = true
                     end
+
+                    crews[crew.owner].data[identifier] = data
                 end
 
                 if changed then
@@ -76,9 +87,9 @@ local function convert()
 
         if parameters then
             MySQL.prepare.await('UPDATE crews SET owner = ?, label = ?, tag = ?, data = ? WHERE owner = ?', parameters)
+            print(('^2Successfully converted %s crews.'):format(finalCount))
         end
 
-        print(('^2Successfully converted %s crews.'):format(finalCount))
         if noOwner > 0 then
             print(('^1%s don\'t have an owner!'):format(noOwner))
         end
