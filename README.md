@@ -58,10 +58,10 @@ Follow the tutorial in `SETUP/HRS-INTEGRATION.txt`
 - `isInCrew(netId)` - returns true if player is in a crew
 - `isInPlayersCrew(owner, player)` - returns true if player is in other player's crew (uses identifiers)
 - `getCrew(identifier)` - returns crew data of players crew
-- `getCrewOwner(identifier)` - returns owner of players crew
+- `getCrewOwner(identifier)` - returns owner's serverId of players crew
 - `getCrewName(identifier)` - returns crew name of players crew
 - `getCrewTag(identifier)` - returns crew tag of players crew
-- `getCrewMembers(identifier)` - returns table containing server IDs of all members
+- `getCrewMembers(identifier)` - returns table containing server IDs and names of all crew members
 - `getPlayerRank(identifier)` - returns the player's rank
 
 Credits: Vallorz, HRS
