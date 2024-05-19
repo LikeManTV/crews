@@ -94,40 +94,46 @@ RegisterServerEvent('crews:createCrew', function(label, tag)
             label = ("%s's Crew"):format(name)
         end
 
-        if not crews[identifier] and not crewByIdentifier[identifier] then
-            local newCrew = {
-                owner = identifier,
-                label = label,
-                tag = tag,
-                data = {}
-            }
-
-            newCrew.data[identifier] = {Name = name, Rank = 'owner'}
-            local success, encodedData = pcall(json.encode, newCrew.data)
-            
-            if success then
-                if encodedData then
-                    crews[identifier] = newCrew
-                    crewByIdentifier[identifier] = identifier
-                    crewNames[identifier] = label
-                    crewTags[identifier] = tag
-
-                    MySQL.insert('INSERT INTO `crews` (owner, label, tag, data) VALUES (?, ?, ?, ?)', {
-                        identifier, label, tag, encodedData
-                    }, function(id)
-                        TriggerClientEvent('crews:setCrew', source, newCrew, invites[identifier], crewNames, crewTags)
-                        TriggerClientEvent('crews:updateNames', -1, crewNames)
-                        TriggerClientEvent('crews:updateTags', -1, crewTags)
-                        TriggerClientEvent('crews:notify', source, _L('create_success', {label}), 'success')
-                    end)
-                else
-                    error("Encoded data is nil for table:", newCrew.data)
-                end
+        MySQL.query('SELECT owner FROM `crews` WHERE owner = ?', {identifier}, function(result)
+            if result[1] then
+                TriggerClientEvent('crews:notify', source, "Creation failed: Crew with this identifier already exists", 'error')
             else
-                error("Error encoding table:", encodedData)
-                print("Problematic table:", newCrew.data)
+                if not crews[identifier] and not crewByIdentifier[identifier] then
+                    local newCrew = {
+                        owner = identifier,
+                        label = label,
+                        tag = tag,
+                        data = {}
+                    }
+
+                    newCrew.data[identifier] = {Name = name, Rank = 'owner'}
+                    local success, encodedData = pcall(json.encode, newCrew.data)
+                    
+                    if success then
+                        if encodedData then
+                            crews[identifier] = newCrew
+                            crewByIdentifier[identifier] = identifier
+                            crewNames[identifier] = label
+                            crewTags[identifier] = tag
+
+                            MySQL.insert('INSERT INTO `crews` (owner, label, tag, data) VALUES (?, ?, ?, ?)', {
+                                identifier, label, tag, encodedData
+                            }, function(id)
+                                TriggerClientEvent('crews:setCrew', source, newCrew, invites[identifier], crewNames, crewTags)
+                                TriggerClientEvent('crews:updateNames', -1, crewNames)
+                                TriggerClientEvent('crews:updateTags', -1, crewTags)
+                                TriggerClientEvent('crews:notify', source, _L('create_success', {label}), 'success')
+                            end)
+                        else
+                            error("Encoded data is nil for table:", newCrew.data)
+                        end
+                    else
+                        error("Error encoding table:", encodedData)
+                        print("Problematic table:", newCrew.data)
+                    end
+                end
             end
-        end
+        end)
     end
 end)
 
