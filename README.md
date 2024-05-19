@@ -51,6 +51,7 @@ Follow the tutorial in `SETUP/HRS-INTEGRATION.txt`
 - `getCrewOwner()` - returns the identifier of the current crew owner
 - `getCrewName()` - returns crew name
 - `getCrewTag()` - returns crew tag
+- `getPlayerRank()` - returns the player's rank
 
 ## 📝 Exports (server)
 - `ownsCrew(netId)` - returns true if player owns a crew
@@ -61,5 +62,6 @@ Follow the tutorial in `SETUP/HRS-INTEGRATION.txt`
 - `getCrewName(identifier)` - returns crew name of players crew
 - `getCrewTag(identifier)` - returns crew tag of players crew
 - `getCrewMembers(identifier)` - returns table containing server IDs of all members
+- `getPlayerRank(identifier)` - returns the player's rank
 
 Credits: Vallorz, HRS
