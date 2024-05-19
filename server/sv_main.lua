@@ -467,7 +467,7 @@ exports('getCrewOwner', function(identifier)
 end)
 
 exports('getCrewName', function(identifier)
-    if identifier and crewOwner then
+    if identifier then
         local crewOwner = crewByIdentifier[identifier]
         if crewOwner and crews[crewOwner] then
             return crews[crewOwner].label
@@ -497,7 +497,7 @@ exports('getCrewMembers', function(identifier)
             for target, _ in pairs(crews[crewOwner].data) do
                 local player = getPlayerFromIdentifier(target)
                 if player and player ~= nil then
-                    table.insert(list, player.source)
+                    table.insert(list, {name = player.name, src = player.source})
                 end
             end
 
@@ -511,7 +511,7 @@ end)
 exports('getPlayerRank', function(identifier)
     local crewOwner = crewByIdentifier[identifier]
     if crewOwner and crews[crewOwner] then
-        return crews[crewOwner].data[identifier].Rank
+        return shared.getRankLabel(crews[crewOwner].data[identifier].Rank)
     end
 
     return nil

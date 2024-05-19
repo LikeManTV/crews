@@ -217,7 +217,7 @@ end)
 
 exports('getPlayerRank', function()
     if crew and crew.data[myIdentifier] then
-        return crew.data[myIdentifier].Rank
+        return shared.getRankLabel(crew.data[myIdentifier].Rank)
     end
 
     return nil

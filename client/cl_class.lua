@@ -12,7 +12,7 @@ crewMenu = {
                 end
             })
 
-            if utils.hasPermission(crew.data[myIdentifier].Rank, 'invite') then
+            if shared.hasPermission(crew.data[myIdentifier].Rank, 'invite') then
                 table.insert(elements, {
                     icon = "user-plus",
                     title = _L('main_menu_invite_title'),
@@ -24,7 +24,7 @@ crewMenu = {
                 })
             end
 
-            if utils.hasPermission(crew.data[myIdentifier].Rank, 'kick') or utils.hasPermission(crew.data[myIdentifier].Rank, 'changeRank') then
+            if shared.hasPermission(crew.data[myIdentifier].Rank, 'kick') or shared.hasPermission(crew.data[myIdentifier].Rank, 'changeRank') then
                 table.insert(elements, {
                     icon = "users",
                     title = _L('main_menu_manage_title'),
@@ -35,7 +35,7 @@ crewMenu = {
                     end
                 })
             end
-            if utils.hasPermission(crew.data[myIdentifier].Rank, 'changeName') or utils.hasPermission(crew.data[myIdentifier].Rank, 'changeTag') then
+            if shared.hasPermission(crew.data[myIdentifier].Rank, 'changeName') or shared.hasPermission(crew.data[myIdentifier].Rank, 'changeTag') then
                 table.insert(elements, {
                     icon = "gear",
                     title = _L('main_menu_settings_title'),
@@ -172,7 +172,7 @@ crewMenu = {
         local elements = {}
         if crew then
             for k,v in pairs(crew.data) do
-                local rankIndex = utils.getRankIndex(crew.data[k].Rank)
+                local rankIndex = shared.getRankIndex(crew.data[k].Rank)
                 if crew.data[k].Rank == 'owner' then
                     table.insert(elements, {
                         index = 0,
@@ -223,10 +223,10 @@ crewMenu = {
         if crew then
             for k,v in pairs(crew.data) do
                 if k and k ~= myIdentifier then
-                    local memberRank = utils.getRankIndex(v.Rank)
-                    local myRank = utils.getRankIndex(crew.data[myIdentifier].Rank)
+                    local memberRank = shared.getRankIndex(v.Rank)
+                    local myRank = shared.getRankIndex(crew.data[myIdentifier].Rank)
                     if memberRank > myRank then
-                        local rankLabel = utils.getRankLabel(v.Rank)
+                        local rankLabel = shared.getRankLabel(v.Rank)
                         table.insert(elements, {
                             icon = "hand",
                             title = v.Name,
@@ -281,8 +281,8 @@ crewMenu = {
                     }
                 end
 
-                local rankLabel = utils.getRankLabel(data.Rank)
-                if utils.hasPermission(myRank.Rank, 'changeRank') then
+                local rankLabel = shared.getRankLabel(data.Rank)
+                if shared.hasPermission(myRank.Rank, 'changeRank') then
                     table.insert(elements, {
                         icon = "ranking-star",
                         title = _L('member_rank_title'),
@@ -302,7 +302,7 @@ crewMenu = {
                             })
                             if not input then return end
         
-                            local rankIndex = utils.getRankIndex(input[1])
+                            local rankIndex = shared.getRankIndex(input[1])
                             local rankData = nil
 
                             if rankIndex == 0 then
@@ -333,7 +333,7 @@ crewMenu = {
                     })
                 end
 
-                if utils.hasPermission(myRank.Rank, 'kick') then
+                if shared.hasPermission(myRank.Rank, 'kick') then
                     table.insert(elements, {
                         icon = "hand",
                         title = _L('member_kick_title'),
@@ -428,7 +428,7 @@ crewMenu = {
         local elements = {}
         if crew and crew.data then
             for k,v in pairs(crew.data) do
-                if utils.hasPermission(v.Rank, 'changeName') then
+                if shared.hasPermission(v.Rank, 'changeName') then
                     table.insert(elements,{
                         icon = "pencil",
                         title = _L('settings_btn_rename_title'),
@@ -451,7 +451,7 @@ crewMenu = {
                     })
                 end
 
-                if utils.hasPermission(v.Rank, 'changeTag') then
+                if shared.hasPermission(v.Rank, 'changeTag') then
                     table.insert(elements,{
                         icon = "pencil",
                         title = _L('settings_btn_tag_title'),
@@ -545,58 +545,6 @@ utils = {
             end
 
             return count
-        end
-
-        return false
-    end,
-
-    getRankIndex = function(rank)
-        for i=1, #CONFIG.RANKS do
-            local data = CONFIG.RANKS[i]
-
-            if data.name == rank then
-                return i
-            elseif rank == 'owner' then
-                return 0
-            elseif rank == 'member' then
-                return 999
-            end
-        end
-
-        return false
-    end,
-
-    getRankLabel = function(rank)
-        for i=1, #CONFIG.RANKS do
-            local data = CONFIG.RANKS[i]
-
-            if data.name == rank and data.label then
-                return data.label
-            elseif rank == 'owner' then
-                return _L('member_rank_owner')
-            elseif rank == 'member' then
-                return _L('member_rank_member')
-            end
-        end
-
-        return error(('Couldn\'t retrieve rank label for rank id:'):format(rank))
-    end,
-
-    hasPermission = function(rank, permission)
-        for i=1, #CONFIG.RANKS do
-            local data = CONFIG.RANKS[i]
-
-            if data.name == rank then
-                for k,v in pairs(data.permissions) do
-                    if k == permission then
-                        return v
-                    end
-                end
-            elseif rank == 'owner' then
-                return true
-            elseif rank == 'member' then
-                return false
-            end
         end
 
         return false
