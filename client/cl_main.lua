@@ -214,3 +214,11 @@ exports('getCrewTag', function()
 
     return nil
 end)
+
+exports('getPlayerRank', function()
+    if crew and crew.data[myIdentifier] then
+        return crew.data[myIdentifier].Rank
+    end
+
+    return nil
+end)

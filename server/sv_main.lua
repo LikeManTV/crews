@@ -488,6 +488,7 @@ exports('getCrewTag', function(identifier)
     return false
 end)
 
+
 exports('getCrewMembers', function(identifier)
     local list = {}
     if identifier then
@@ -505,4 +506,13 @@ exports('getCrewMembers', function(identifier)
     end
 
     return 0
+end)
+
+exports('getPlayerRank', function(identifier)
+    local crewOwner = crewByIdentifier[identifier]
+    if crewOwner and crews[crewOwner] then
+        return crews[crewOwner].data[identifier].Rank
+    end
+
+    return nil
 end)
