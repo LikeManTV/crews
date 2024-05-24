@@ -16,11 +16,10 @@ AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
     end
 end)
 
-RegisterNetEvent('esx:playerLogout')
-AddEventHandler('esx:playerLogout', function(xPlayer, isNew)
+RegisterNetEvent('esx:onPlayerLogout')
+AddEventHandler('esx:onPlayerLogout', function(xPlayer, isNew)
 	ESX.PlayerLoaded = false
 	ESX.PlayerData = {}
-
     myIdentifier = nil
 end)
 
