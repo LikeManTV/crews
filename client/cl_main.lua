@@ -162,6 +162,9 @@ function startLoop()
                         end
                     end
                 end
+            else
+                utils.deleteTag()
+                utils.deleteBlip()
             end
         end
     end)
