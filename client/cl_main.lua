@@ -104,7 +104,7 @@ function startLoop()
                                                 end
                 
                                                 local crewBlip = AddBlipForEntity(playerPed)
-                                                setBlip(crewBlip)
+                                                utils.setBlip(crewBlip)
                                                 SetBlipShowCone(crewBlip, true)
                                                 crewBlipsNear[identifier] = crewBlip
                                                 
@@ -117,8 +117,8 @@ function startLoop()
                                         else
                                             if crewBlipsFar[targetIdentifier] then
                                                 if DoesBlipExist(crewBlipsFar[targetIdentifier]) then
-                                                    local blip = crewBlipsFar[targetIdentifier]
-                                                    SetBlipCoords(blip, coords.xyz)
+                                                    local crewBlip = crewBlipsFar[targetIdentifier]
+                                                    SetBlipCoords(crewBlip, coords.xyz)
                                                 end
                                             else
                                                 if crewBlipsNear[targetIdentifier] then
@@ -126,18 +126,14 @@ function startLoop()
                                                     crewBlipsNear[targetIdentifier] = nil
                                                 end
                 
-                                                local blip = AddBlipForCoord(coords.xyz)
-                                                SetBlipDisplay(blip, 2)
-                                                SetBlipSprite(blip, 1)
-                                                SetBlipColour(blip, 2)
-                                                SetBlipScale(blip, 0.7)
-                                                SetBlipCategory(blip, 7)
-                                                crewBlipsFar[targetIdentifier] = blip
+                                                local crewBlip = AddBlipForCoord(coords.xyz)
+                                                utils.setBlip(crewBlip)
+                                                crewBlipsFar[targetIdentifier] = crewBlip
                                                 
                                                 DisplayPlayerNameTagsOnBlips(true)
                                                 AddTextEntry(('CREW_BLIP_%s'):format(blipPlayer), name)
                                                 BeginTextCommandSetBlipName(('CREW_BLIP_%s'):format(blipPlayer))
-                                                EndTextCommandSetBlipName(blip)
+                                                EndTextCommandSetBlipName(crewBlip)
                                             end
                                         end
                                     end
