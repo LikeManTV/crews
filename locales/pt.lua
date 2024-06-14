@@ -6,7 +6,7 @@ Language['pt'] = {
 
     -- MAIN MENU
     main_menu_title = 'MENU DE CLÃ',
-    main_menu_desc = 'Tag: [%s]\n Membros: %s',
+    main_menu_desc = 'Tag: [%s]\n Membros: %s\n Your Rank: %s',
     main_menu_invite_title = 'CONVIDAR PLAYER',
     main_menu_invite_desc = 'Clique para convidar players.',
     main_menu_manage_title = 'ADMINISTRAR PLAYER',
@@ -59,7 +59,7 @@ Language['pt'] = {
     member_rank_input_title = 'Select a rank',
     member_rank_confirmation_title = 'CHANGE RANK',
     member_rank_confirmation_desc = 'Are you sure that want to change %s\'s rank to %s?',
-    member_rank_success = 'Successfuly changed %s\'s rank to %s!',
+    member_rank_success = 'Successfuly changed %s\'s rank to "%s"!',
     player_rank_changed = 'Your rank has been changed to "%s"!',
     member_crew_transfer_title = 'TRANSFER OWNERSHIP',
     member_crew_transfer_desc = 'Click to transfer ownership.',

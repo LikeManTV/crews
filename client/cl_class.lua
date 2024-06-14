@@ -3,8 +3,8 @@ crewMenu = {
         local elements = {}
         if crew then
             table.insert(elements, {
-                title = crew.label,
-                description = _L('main_menu_desc', {crew.tag, utils.getMemberCount()}),
+                title = 'CREW INFORMATION:',
+                description = _L('main_menu_desc', {crew.tag, utils.getMemberCount(), shared.getRankLabel(crew.data[myIdentifier].Rank)}),
                 arrow = true,
                 onSelect = function()
                     lib.hideContext(onExit)
@@ -87,19 +87,20 @@ crewMenu = {
                 })
             end
         else
-            table.insert(elements,{
+            table.insert(elements, {
                 icon = "list",
                 title = _L('main_menu_invites_title'),
+                description = _L('main_menu_invites_desc'),
                 onSelect = function()
                     lib.hideContext(onExit)
                     crewMenu.openInvitesList()
-                end,
-                description = _L('main_menu_invites_desc')
+                end
             })
 
-            table.insert(elements,{
+            table.insert(elements, {
                 icon = "plus",
                 title = _L('main_menu_create_title'),
+                description = _L('main_menu_create_desc'),
                 onSelect = function()
                     local input = lib.inputDialog(_L('main_menu_create_title'), {_L('create_name_desc'), _L('create_tag_desc')})
                     local label = nil
@@ -128,14 +129,13 @@ crewMenu = {
     
                     TriggerServerEvent('crews:createCrew', label, tag:upper())
                     lib.hideContext(onExit)
-                end,
-                description = _L('main_menu_create_desc')
+                end
             })
         end
         
         lib.registerContext({
             id = 'crew_menu',
-            title = _L('main_menu_title'),
+            title = crew?.label or _L('main_menu_title'),
             options = elements
         })
         lib.showContext('crew_menu')
@@ -148,11 +148,11 @@ crewMenu = {
                 table.insert(elements,{
                     icon = "hand",
                     title = v,
+                    description = _L('invites_btn_desc'),
                     onSelect = function()
                         TriggerServerEvent('crews:joinCrew', k)
                         lib.hideContext(onExit)
-                    end,
-                    description = _L('invites_btn_desc')
+                    end
                 })
             end
 
@@ -392,7 +392,7 @@ crewMenu = {
             local coords = GetEntityCoords(cache.ped)
 
             if players then
-                for k,v in ipairs(players) do
+                for _,v in ipairs(players) do
                     if cache.playerId ~= v then
                         local targetCoords = GetEntityCoords(GetPlayerPed(v))
                         if CONFIG.MAX_INVITE_DISTANCE and #(coords - targetCoords) > CONFIG.MAX_INVITE_DISTANCE then
@@ -427,11 +427,12 @@ crewMenu = {
     openSettings = function()
         local elements = {}
         if crew and crew.data then
-            for k,v in pairs(crew.data) do
+            for _,v in pairs(crew.data) do
                 if shared.hasPermission(v.Rank, 'changeName') then
                     table.insert(elements,{
                         icon = "pencil",
                         title = _L('settings_btn_rename_title'),
+                        description = _L('settings_btn_rename_desc'),
                         onSelect = function()
                             local input = lib.inputDialog(_L('settings_btn_rename_title'), {_L('create_name_desc')})
                             local label = nil
@@ -446,8 +447,7 @@ crewMenu = {
                             end
             
                             TriggerServerEvent('crews:renameCrew', label)
-                        end,
-                        description = _L('settings_btn_rename_desc')
+                        end
                     })
                 end
 
@@ -455,6 +455,7 @@ crewMenu = {
                     table.insert(elements,{
                         icon = "pencil",
                         title = _L('settings_btn_tag_title'),
+                        description = _L('settings_btn_rename_desc'),
                         onSelect = function()
                             local input = lib.inputDialog(_L('settings_btn_tag_title'), {_L('create_tag_desc')})
                             if not input then return end
@@ -474,8 +475,7 @@ crewMenu = {
                             end
             
                             TriggerServerEvent('crews:newTag', tag:upper())
-                        end,
-                        description = _L('settings_btn_rename_desc')
+                        end
                     })
                 end
                 
@@ -499,6 +499,14 @@ crewMenu = {
 }
 
 utils = {
+    setBlip = function(blip)
+        SetBlipDisplay(blip, 2)
+        SetBlipSprite(blip, 1)
+        SetBlipColour(blip, 2)
+        SetBlipScale(blip, 0.7)
+        SetBlipCategory(blip, 7)
+    end,
+
     deleteBlip = function(identifier)
         if identifier then
             if crewBlipsNear[identifier] then
@@ -510,15 +518,24 @@ utils = {
                 crewBlipsFar[identifier] = nil
             end
         else
-            for _, blip in pairs(crewBlipsNear) do
-                RemoveBlip(blip)
+            for i=1, #crewBlipsNear do
+                RemoveBlip(crewBlipsNear[i])
             end
-            for _, blip in pairs(crewBlipsFar) do
-                RemoveBlip(blip)
+            for i=1, #crewBlipsFar do
+                RemoveBlip(crewBlipsFar[i])
             end
             table.clear(crewBlipsNear)
             table.clear(crewBlipsFar)
         end
+    end,
+
+    createTag = function(ped, name)
+        local tag = CreateFakeMpGamerTag(ped, ('[%s] %s'):format((crew and crew.tag or 'nil'), name), false, false, "", 0, 0, 0, 0)
+        SetMpGamerTagColour(tag, 0, 18)
+        SetMpGamerTagVisibility(tag, 2, 1)
+        SetMpGamerTagAlpha(tag, 2, 255)
+        SetMpGamerTagHealthBarColor(tag, 129)
+        return tag
     end,
 
     deleteTag = function(identifier)
@@ -529,8 +546,8 @@ utils = {
             end
         else
             if currentTags then
-                for _, tag in pairs(currentTags) do
-                    RemoveMpGamerTag(tag)
+                for i=1, #currentTags do
+                    RemoveMpGamerTag(currentTags[i])
                 end
                 table.clear(currentTags)
             end
@@ -540,13 +557,13 @@ utils = {
     getMemberCount = function()
         if crew then
             local count = 0
-            for _,_ in pairs(crew.data) do
-                count = count + 1
+            for i=1, #crew.data do
+                count += 1
             end
 
             return count
         end
 
         return false
-    end,
+    end
 }

@@ -3,7 +3,7 @@
 █▀█ █▀▄ ▄█   █▄█ █▀█ ▄█ ██▄   █▄█ █▄█ █ █▄▄ █▄▀ █ █░▀█ █▄█
 
 1. Open hrs_base_building > SERVER > main_unlocked.lua
-2. Find function hasPermission and replace it with this:
+2. Find `function hasPermission and replace it with this:
 
 function hasPermission(identifier,id)
     if identifier == props[id].identifier then
@@ -25,7 +25,7 @@ end
 █▀█ █▀▄ ▄█   ▀▄▀ ██▄ █▀█ █ █▄▄ █▄▄ ██▄ ▄█
 
 1. Open hrs_base_building > SERVER > main_unlocked.lua
-2. Find function hasPermissionVeh and replace it with this:
+2. Find `function hasPermissionVeh` and replace it with this:
 
 function hasPermissionVeh(identifier,identifier2)
     if identifier == identifier2 then
@@ -43,7 +43,7 @@ function hasPermissionVeh(identifier,identifier2)
 end
 
 1. Open hrs_base_building > CLIENT > main_unlocked.lua
-2. Find function hasPermissionVeh and replace it with this:
+2. Find `function hasPermissionVeh` and replace it with this:
 
 function hasPermissionVeh(identifier,identifier2)
     if identifier == identifier2 then

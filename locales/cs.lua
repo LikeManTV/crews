@@ -6,7 +6,7 @@ Language['cs'] = {
 
     -- MAIN MENU
     main_menu_title = 'CREW MENU',
-    main_menu_desc = 'Tag: [%s]\n Členové: %s',
+    main_menu_desc = 'Tag: [%s]\n Členové: %s\n Váš Rank: %s',
     main_menu_invite_title = 'POZVAT HRÁČE',
     main_menu_invite_desc = 'Klikni pro pozvání hráčů.',
     main_menu_manage_title = 'SPRAVOVAT ČLENY',
@@ -54,14 +54,16 @@ Language['cs'] = {
 
     -- MEMBER SETTINGS
     member_title = 'ČLENOVÉ > %s',
-    member_rank_title = 'ZMĚNIT POZICI',
-    member_rank_desc = 'Pozice: %s',
-    member_rank_input_title = 'Vyberte pozici',
-    member_rank_confirmation_title = 'ZMĚNIT POZICI',
-    member_rank_confirmation_desc = 'Opravdu chcete změnit hráči %s pozici na %s?',
-    member_rank_success = 'Pozice hráče %s byla úspěšně změněna na %s!',
+    member_rank_title = 'ZMĚNIT RANK',
+    member_rank_desc = 'Rank: %s',
+    member_rank_input_title = 'Vyberte rank',
+    member_rank_confirmation_title = 'ZMĚNA RANKU',
+    member_rank_confirmation_desc = 'Opravdu chcete změnit hráči %s rank na %s?',
+    member_rank_success = 'Rank hráče %s byla úspěšně změněna na %s!',
+    player_rank_changed = 'Váš rank byl změněn na "%s"!',
     member_crew_transfer_title = 'PŘEVOD VLASTNICTVÍ',
     member_crew_transfer_desc = 'Klikni pro převod vlastnictví.',
+    member_crew_transfer_confirmation_desc = 'Opravdu chcete převést vlastnictví crew na %s?',
     member_crew_transfer_success = 'Crew byla úspěšně převedena hráči "%s"!',
     player_crew_transfered = 'Bylo na vás převedeno vlastnictví crew.',
     member_kick_title = 'VYHODIT',

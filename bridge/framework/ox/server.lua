@@ -15,7 +15,7 @@ function getPlayerFromIdentifier(identifier)
 
     for i=1, #players do
         local player = players[i]
-        if player.charId and player.charId == identifier then
+        if player.charId and tostring(player.charId) == identifier then
             return player
         end
     end
@@ -32,5 +32,5 @@ function getPlayerData(player)
     local playerPed = GetPlayerPed(player.source)
     local netId = NetworkGetNetworkIdFromEntity(playerPed)
     repeat Wait(0) until netId and netId ~= nil
-    return {source = player.source, ped = netId, identifier = player.charId, coords = player.getCoords(), name = GetPlayerName(player.source)}
+    return {source = player.source, ped = netId, identifier = tostring(player.charId), coords = player.getCoords(), name = GetPlayerName(player.source)}
 end

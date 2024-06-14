@@ -20,5 +20,5 @@ function getPlayerData(player)
     local playerPed = GetPlayerPed(player.PlayerData.source)
     local netId = NetworkGetNetworkIdFromEntity(playerPed)
     repeat Wait(0) until netId and netId ~= nil
-    return {source = playerData.source, ped = netId, identifier = playerData.citizenid, coords = GetEntityCoords(ped), name = GetPlayerName(playerData.source)}
+    return {source = playerData.source, ped = netId, identifier = tostring(playerData.citizenid), coords = GetEntityCoords(playerPed), name = GetPlayerName(playerData.source)}
 end

@@ -3,7 +3,12 @@ CONFIG = {
     COMMAND = 'crew',
     MAX_CREW_MEMBERS = 4,
     MAX_INVITE_DISTANCE = 5.0, -- false to disable distance check
+    
+    ENABLE_BLIPS = true,
+    ENABLE_TAGS = true,
+    MAX_TAG_DISTANCE = false,
 
+    -- DO NOT ADD RANKS WITH THE NAME "OWNER" AND "MEMBER"! THEY ARE CREATED AUTOMATICALLY.
     RANKS = { -- Add your own ranks here!
         [1] = { -- Order in which are ranks displayed (owner is always first and member last).
             name = 'officer', -- The name must be unique.
@@ -20,7 +25,7 @@ CONFIG = {
 }
 
 -- Customize the notifications here.
-notify = function(text, _type)
+function notify(text, _type)
     if not _type then _type = 'inform' end
 
     lib.notify({

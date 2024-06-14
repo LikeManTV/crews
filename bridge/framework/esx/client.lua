@@ -3,10 +3,9 @@ ESX = exports.es_extended:getSharedObject()
 
 RegisterNetEvent('esx:playerLoaded')
 AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
-    ESX.PlayerData = xPlayer
-    ESX.PlayerLoaded = true
-
-    if ESX.PlayerData then
+    if xPlayer then
+        ESX.PlayerData = xPlayer
+        ESX.PlayerLoaded = true
         myIdentifier = ESX.PlayerData.identifier
         
         TriggerServerEvent('crews:getCrew', ESX.PlayerData.identifier)

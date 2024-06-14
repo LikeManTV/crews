@@ -92,48 +92,47 @@ function startLoop()
                             local blipPlayer = obj.source
                             local playerPed = NetworkDoesEntityExistWithNetworkId(obj.ped) and NetworkGetEntityFromNetworkId(obj.ped) or nil
                             local targetIdentifier, name, coords = obj.identifier, obj.name, obj.coords
-                            repeat Wait(0) until DoesEntityExist(playerPed)
+                            if not DoesEntityExist(playerPed) then goto continue end
                             if identifier == targetIdentifier then
                                 if targetIdentifier ~= myIdentifier then
-                                    if #(GetEntityCoords(cache.ped) - coords) < 100.0 then
-                                        if crewBlipsNear[identifier] == nil then
-                                            if crewBlipsFar[identifier] then
-                                                RemoveBlip(crewBlipsFar[identifier])
-                                                crewBlipsFar[identifier] = nil
+                                    if CONFIG.ENABLE_BLIPS then
+                                        if #(GetEntityCoords(cache.ped) - coords) < 100.0 then
+                                            if crewBlipsNear[identifier] == nil then
+                                                if crewBlipsFar[identifier] then
+                                                    RemoveBlip(crewBlipsFar[identifier])
+                                                    crewBlipsFar[identifier] = nil
+                                                end
+                
+                                                local crewBlip = AddBlipForEntity(playerPed)
+                                                setBlip(crewBlip)
+                                                SetBlipShowCone(crewBlip, true)
+                                                crewBlipsNear[identifier] = crewBlip
+                                                
+                                                local blipId = ('CREW_BLIP_%s'):format(blipPlayer)
+                                                DisplayPlayerNameTagsOnBlips(true)
+                                                AddTextEntry(blipId, name)
+                                                BeginTextCommandSetBlipName(blipId)
+                                                EndTextCommandSetBlipName(crewBlip)
                                             end
-            
-                                            local blip = AddBlipForEntity(playerPed)
-                                            SetBlipDisplay(blip, 2)
-                                            SetBlipSprite(blip, 1)
-                                            SetBlipColour(blip, 2)
-                                            SetBlipScale(blip, 0.7)
-                                            SetBlipCategory(blip, 7)
-                                            SetBlipShowCone(blip, true)
-                                            crewBlipsNear[identifier] = blip
-                                            
-                                            DisplayPlayerNameTagsOnBlips(true)
-                                            AddTextEntry(('CREW_BLIP_%s'):format(blipPlayer), name)
-                                            BeginTextCommandSetBlipName(('CREW_BLIP_%s'):format(blipPlayer))
-                                            EndTextCommandSetBlipName(blip)
-                                        end
-                                    else
-                                        if crewBlipsFar[identifier] == nil then
-                                            if crewBlipsNear[identifier] then
-                                                RemoveBlip(crewBlipsNear[identifier])
-                                                crewBlipsNear[identifier] = nil
-                                            end
-            
-                                            if crewBlipsFar[identifier] and DoesBlipExist(crewBlipsFar[identifier]) then
-                                                local blip = crewBlipsFar[identifier]
-                                                SetBlipCoords(blip, coords.xyz)
+                                        else
+                                            if crewBlipsFar[targetIdentifier] then
+                                                if DoesBlipExist(crewBlipsFar[targetIdentifier]) then
+                                                    local blip = crewBlipsFar[targetIdentifier]
+                                                    SetBlipCoords(blip, coords.xyz)
+                                                end
                                             else
+                                                if crewBlipsNear[targetIdentifier] then
+                                                    RemoveBlip(crewBlipsNear[targetIdentifier])
+                                                    crewBlipsNear[targetIdentifier] = nil
+                                                end
+                
                                                 local blip = AddBlipForCoord(coords.xyz)
                                                 SetBlipDisplay(blip, 2)
                                                 SetBlipSprite(blip, 1)
                                                 SetBlipColour(blip, 2)
                                                 SetBlipScale(blip, 0.7)
                                                 SetBlipCategory(blip, 7)
-                                                crewBlipsFar[identifier] = blip
+                                                crewBlipsFar[targetIdentifier] = blip
                                                 
                                                 DisplayPlayerNameTagsOnBlips(true)
                                                 AddTextEntry(('CREW_BLIP_%s'):format(blipPlayer), name)
@@ -143,18 +142,27 @@ function startLoop()
                                         end
                                     end
             
-                                    if settings.showTags then
-                                        local currentTag = CreateFakeMpGamerTag(playerPed, ('[%s] %s'):format((crew and crew.tag or 'nil'), name), false, false, "", 0, 0, 0, 0)
-                                        SetMpGamerTagColour(currentTag, 0, 18)
-                                        SetMpGamerTagVisibility(currentTag, 2, 1)
-                                        SetMpGamerTagAlpha(currentTag, 2, 255)
-                                        SetMpGamerTagHealthBarColor(currentTag, 129)
-                                        currentTags[identifier] = currentTag
-                                    else
-                                        utils.deleteTag(identifier)
+                                    if CONFIG.ENABLE_TAGS then
+                                        if settings.showTags then
+                                            local currentTag = nil
+
+                                            if CONFIG.MAX_TAG_DISTANCE then
+                                                if #(GetEntityCoords(cache.ped) - coords) < CONFIG.MAX_TAG_DISTANCE then
+                                                    currentTag = utils.createTag(playerPed, name)
+                                                else
+                                                    utils.deleteTag(identifier)
+                                                end
+                                            else
+                                                currentTag = utils.createTag(playerPed, name)
+                                            end
+                                            currentTags[identifier] = currentTag
+                                        else
+                                            utils.deleteTag(identifier)
+                                        end
                                     end
                                 end
                             end
+                            ::continue::
                         end
                     end
                 end

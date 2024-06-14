@@ -6,7 +6,7 @@ Language['en'] = {
 
     -- MAIN MENU
     main_menu_title = 'CREW MENU',
-    main_menu_desc = 'Tag: [%s]\n Members: %s',
+    main_menu_desc = 'Tag: [%s]\n Members: %s\n Your Rank: %s',
     main_menu_invite_title = 'INVITE PLAYERS',
     main_menu_invite_desc = 'Click to invite players.',
     main_menu_manage_title = 'MANAGE PLAYERS',
@@ -59,7 +59,7 @@ Language['en'] = {
     member_rank_input_title = 'Select a rank',
     member_rank_confirmation_title = 'CHANGE RANK',
     member_rank_confirmation_desc = 'Are you sure that want to change %s\'s rank to %s?',
-    member_rank_success = 'Successfuly changed %s\'s rank to %s!',
+    member_rank_success = 'Successfuly changed %s\'s rank to "%s"!',
     player_rank_changed = 'Your rank has been changed to "%s"!',
     member_crew_transfer_title = 'TRANSFER OWNERSHIP',
     member_crew_transfer_desc = 'Click to transfer ownership.',
