@@ -9,7 +9,7 @@ Please report any problems by creating a new issue or join the Discord server.<b
 Also feel free to make a PR.
 
 ## 🔥 Features
-- Supports ESX, QB & OX
+- Supports ESX, QB, OX & QBX
 - Crew menu
 - Crew tag & name
 - Player invitation
