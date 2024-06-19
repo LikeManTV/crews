@@ -161,9 +161,11 @@ RegisterServerEvent('crews:deleteCrew', function()
             end
         end
 
-        local success = MySQL.update.await('DELETE FROM crews WHERE owner', {identifier})
-        if success then
+        local success = MySQL.update.await('DELETE FROM crews WHERE owner = ?', {identifier})
+        if success and success > 0 then
             TriggerClientEvent('crews:notify', source, _L('delete_success', {crews[identifier].label}), 'success')
+	else
+		print('Crew deletion failed.')
         end
 
         crews[identifier] = nil
