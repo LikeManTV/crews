@@ -1,4 +1,4 @@
-## ⚠️ THIS SCRIPT IS NOT ARCHIVED AND WILL NOT RECIEVE ANY UPDATES.
+## ⚠️ THIS SCRIPT IS NOW ARCHIVED AND WILL NOT RECIEVE ANY UPDATES.
 
 # CREWS
 [![GitHub release](https://img.shields.io/github/v/release/LikeManTV/crews.svg)](https://github.com/LikeManTV/crews/releases/latest)
