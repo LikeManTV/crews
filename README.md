@@ -1,4 +1,4 @@
-## ⚠️ THE SCRIPT IS NOT WORKING PROPERLY. THERE IS AN UPDATE ON THE WAY TO FIX ALL THE ISSUES.
+## ⚠️ THIS SCRIPT IS NOT ARCHIVED AND WILL NOT RECIEVE ANY UPDATES.
 
 # CREWS
 [![GitHub release](https://img.shields.io/github/v/release/LikeManTV/crews.svg)](https://github.com/LikeManTV/crews/releases/latest)
